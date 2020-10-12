@@ -18,7 +18,7 @@ global tettfile debug_mode
 fprintf('* in Add_ROAD_URBAN_RURAL   *\n')
 fprintf('Adding URBAN field based on geo file: \n%s\n',tettfile)
 Tshape  = shaperead(tettfile);
-prj     = HEDGE_read_projection(tettfile);
+prj     = read_projection(tettfile);
 
 % Adds a Roads Midpoint based on the starting point and ending point of
 % Road

@@ -22,8 +22,8 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 % 20.09.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold
-global traffile Komm_shape
+global tfold use_temporary_files
+global traffile Komm_shape Listfields
 
 fprintf('in PreProcess_Input_Traffic.\n')
 
@@ -41,37 +41,23 @@ fields_made = [{'URBAN'},{'RUSH_DELAY'},{'RUSH_SPEED'},{'SLOPE'},{'HBEFA_NUM'},{
 
 % List of fields a finished file has:
 Listfields = [{'Geometry'},{'X'},{'Y'},{'BoundingBox'},{'DISTANCE'},{'KOMM'},{'SPEED'},{'SLOPE'},...
-    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'N_LANES'},{'L_ADT'},{'H_ADT'},{'B_ADT'}];
+    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'CAPACITY'},{'N_LANES'},{'L_ADT'},{'H_ADT'},{'B_ADT'}];
 
-
-
-% First do tests if there is a temporary file saved:
-a = strfind(traffile,'/');
-if isempty(a)
-    fname = [];
-    ofile = strcat(tfold,traffile,'_temp');
-else
-    fname = traffile(a(end)+1:end);
-    ofile = strcat(tfold,fname,'_temp');
-end
-
-% Try to load a temporary file:
-try
-    fprintf('Trying to read temp file\n%s_temp...\n',fname)
-    RLinks = shaperead(ofile);
-    fprintf('Found Pre-Processed file:\n %s \n',ofile)
-    fields = fieldnames(RLinks);
-    fprintf('Fields:\n')
-    for i=1:length(fields)
-        fprintf('%s\n',char(fields(i)))        
-    end
-    return
-catch
-    fprintf('### No temporary file found ###\n')
-    % try to read the road shape
+if use_temporary_files
     try
+        % First do tests if there is a temporary file saved:
+        fprintf('Trying to read temp file\n%s ...\n',tfiles.RL)
+        RLinks = shaperead(tfiles.RL);
+        fprintf('Found Pre-Processed file:\n %s \n',tfiles.RL)
+        fields = fieldnames(RLinks);
+        fprintf('Fields:\n')
+        for i=1:length(fields)
+            fprintf('%s\n',char(fields(i)))
+        end
+    catch
+        fprintf('### No temporary file found ###\n')
         prj    = read_projection(traffile);
-        fprintf('Reading large file: \n\t %s  ...',fname)
+        fprintf('Reading large file: \n\t %s  ...',traffile)
         RLinks = shaperead(traffile);
         fprintf('done\n')
         fields = fieldnames(RLinks);
@@ -80,13 +66,20 @@ catch
             fprintf('%s,',char(fields(i)))
             if rem(i,10)==0;fprintf('\n');end
         end
-    catch
-        RLinks=[];
-        warning('Did not find road links at defined path')
-        fprintf('continuing...\n')
-        return
+        fprintf('\n')
     end
-    
+else
+    prj    = read_projection(traffile);
+    fprintf('Reading large file: \n\t %s  ...',traffile)
+    RLinks = shaperead(traffile);
+    fprintf('done\n')
+    fields = fieldnames(RLinks);
+    fprintf('Fields:\n')
+    for i=1:length(fields)
+        fprintf('%s,',char(fields(i)))
+        if rem(i,10)==0;fprintf('\n');end
+    end
+    fprintf('\n')
 end
 
 
@@ -98,7 +91,6 @@ for i=1:length(required_fields)
         error('Missing required field (possibly others)')
     end
 end
-
 
 % Test if required fields are there:
 for i=1:length(Listfields)
@@ -118,7 +110,6 @@ for i=1:length(location_fields)
     end
 end
 
-
 if miss_location
     RLinks = Roads_Add_Municipality(RLinks,Komm_shape);
 else
@@ -126,6 +117,8 @@ else
 end
 
 %--------------------------------------------------------------------------
+RLinks = Roads_Remove_NoTrafficRoads(RLinks);
+
 RLinks = Fix_Roadfields(RLinks);
 
 %--------------------------------------------------------------------------
@@ -172,11 +165,73 @@ if ~isfield(RLinks,'WIDTH') && isfield(RLinks,'DEKKEBREDD')|| isfield(RLinks,'LA
 end
 
 % Scale Traffic from road year to traffic year:
-RLinks = Roads_Scale_Traffic_to_Year(RLinks);
-if save_intermediate
-    ofile = strcat(traffile,sprintf('HEDGE_%i',Tyear));
-    Save_shape(RLinks,ofile,traffile)
+RnLinks = Roads_Scale_Traffic_to_Year(RLinks);
+
+if use_temporary_files
+    Save_shape(RLinks,tfiles.RL)
 end
 
 end
-%%
+%
+%     try
+%         prj    = read_projection(traffile);
+%         fprintf('Reading large file: \n\t %s  ...',fname)
+%         RLinks = shaperead(traffile);
+%         fprintf('done\n')
+%         fields = fieldnames(RLinks);
+%         fprintf('Fields:\n')
+%         for i=1:length(fields)
+%             fprintf('%s,',char(fields(i)))
+%             if rem(i,10)==0;fprintf('\n');end
+%         end
+%         fprintf('\n')
+%     catch
+%         RLinks=[];
+%         warning('Did not find road links at defined path')
+%         fprintf('continuing...\n')
+%         return
+%     end
+% 
+% % 
+% 
+% a = strfind(traffile,'/');
+% if isempty(a)
+%     fname = [];
+%     ofile = strcat(tfold,tfiles.RL);
+% else
+%     fname = traffile(a(end)+1:end);
+%     ofile = strcat(tfold,tfiles.RL);
+% end
+% % Try to load a temporary file:
+% try
+%     fprintf('Trying to read temp file\n%s_temp...\n',tfiles.RL)
+%     RLinks = shaperead(tfiles.RL);
+%     fprintf('Found Pre-Processed file:\n %s \n',tfiles.RL)
+%     fields = fieldnames(RLinks);
+%     fprintf('Fields:\n')
+%     for i=1:length(fields)
+%         fprintf('%s\n',char(fields(i)))        
+%     end
+%     return
+% catch
+%     fprintf('### No temporary file found ###\n')
+%     % try to read the road shape
+%     try
+%         prj    = read_projection(traffile);
+%         fprintf('Reading large file: \n\t %s  ...',fname)
+%         RLinks = shaperead(traffile);
+%         fprintf('done\n')
+%         fields = fieldnames(RLinks);
+%         fprintf('Fields:\n')
+%         for i=1:length(fields)
+%             fprintf('%s,',char(fields(i)))
+%             if rem(i,10)==0;fprintf('\n');end
+%         end
+%         fprintf('\n')
+%     catch
+%         RLinks=[];
+%         warning('Did not find road links at defined path')
+%         fprintf('continuing...\n')
+%         return
+%     end
+% end
