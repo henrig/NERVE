@@ -10,6 +10,13 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 % -OUTPUT : this function adds the road link shapes per municipality to the
 %           temporary folder (tpath).
 %
+% Road sources are generally considered to be ESRI shapefiles by the model.
+% They have an assumed set of fields ('Geometry','BoundingBox','X','Y') and
+% traffic volumes given as ADT (Annual daily traffic) for Light, Heavy and
+% Buses. In addition the Model wants some advanced road properties such as the
+% slope, type of road, speed, congestion etc that it uses for Advanced EF
+% calculations on each road link.
+%
 % Functions also read ancillary files to define fields.
 %   read_projection()
 %   Roads_Add_Urban()
