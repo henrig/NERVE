@@ -29,7 +29,7 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 % 20.09.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold use_temporary_files
+global tfold use_temporary_files tfiles
 global traffile Komm_shape Listfields
 
 fprintf('in PreProcess_Input_Traffic.\n')
@@ -172,7 +172,8 @@ if ~isfield(RLinks,'WIDTH') && isfield(RLinks,'DEKKEBREDD')|| isfield(RLinks,'LA
 end
 
 % Scale Traffic from road year to traffic year:
-RnLinks = Roads_Scale_Traffic_to_Year(RLinks);
+RLinks = Roads_Scale_Traffic_to_Year(RLinks);
+
 
 if use_temporary_files
     Save_shape(RLinks,tfiles.RL)

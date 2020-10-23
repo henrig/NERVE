@@ -82,6 +82,10 @@ Tlink.L_ADT = L_adt;
 Tlink.H_ADT = H_adt;
 Tlink.B_ADT = B_adt;
 
+
+
+
+
 fprintf('Structuring Roads \n')
 clear f
 for i=1:length(Listfields)
@@ -96,4 +100,7 @@ Tlink.Properties.VariableNames(heavy_adt) = {sprintf('H_ADT%04i',Tyear)};
 Tlink.Properties.VariableNames(bus_adt)   = {sprintf('B_ADT%04i',Tyear)};
 
 Sn = table2struct(Tlink(:,f));
+% l = extractfield(Sn,'DISTANCE')
+
+
 end
