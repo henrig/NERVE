@@ -27,7 +27,7 @@ function [Sn] = Roads_Add_Municipality(RLinks,Komm_shape)
 fprintf('* call Add_ROAD_Municipality   *\n')
 fprintf('Adding kommune field based on geo file: \n%s\n',Komm_shape)
 Ks      = shaperead(Komm_shape);
-prj     = HEDGE_read_projection(Komm_shape);
+prj     = read_projection(Komm_shape);
 
 % Adds a Roads Midpoint based on the starting point and ending point of
 % Road

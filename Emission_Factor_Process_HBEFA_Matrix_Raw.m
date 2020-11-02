@@ -1,30 +1,21 @@
 function Emission_Factor_Process_HBEFA_Matrix_Raw()
 %--------------------------------------------------------------------------
-
+% Script for reading and processing HBEFA .csv file of subsegments.
+% Basically taken from NERVE, but includes some updates for the format of
+% HBEFA4.1. Makes a 6-D matix of the emissions factor, convenient for speedy
+% processing.
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-
-% Script for reading and processing HBEFA .csv file of subsegments.
-%
-%
-% Basically taken from NERVE, but includes some updates for the format of
-% HBEFA4.1.
-%
-% Makes a 6-D matix of the emissions factor, convenient for speedy
-% processing.
-%--------------------------------------------------------------------------
-%
 % % Path to emissions
 % HBEFA_path = '/storage/nilu/Inby/Emission_Group/Emission_Factors/Traffic/HBEFA_Raw_data/HOT_HBEFA_41/';
-%
 % % List the avalable species SLA have downloaded Emission factors for
 % comps      = [{'NOx'},{'CO2'},{'BC'},{'Be'},{'CO'},{'HC'},{'NMHC'},{'NO2'},{'PM'},{'PN'},{'NH3'},{'N2O'},{'CH4'},{'FC'},{'FC_MJ'}];
 
 global do_preProcessing_HBEFA debug_mode
 global HBEFA_path tfold comps
 
-fprintf('* call PreProcess_HBEFA_Matrix_Raw   *\n')
+fprintf('\tEmission_Factor_Process_HBEFA_Matrix_Raw  *\n')
 if ~do_preProcessing_HBEFA
     fprintf('We Already Have Necessary HBEFA Emission Factors \n')
     fprintf('... Continuing Without new HBEFA calculations \n ... \n')
@@ -44,9 +35,9 @@ NfldList = [{'Year'},{'TrafficScenario'},{'RoadCat'},{'IDSubsegment'},{'KM'},{'x
     {'EFA_weighted_100_'},{'EFA_WTT'},{'EFA_WTT_0_'},{'EFA_WTT_100_'},{'EFA_WTW'},{'EFA_WTW_0_'},{'EFA_WTW_100_'},{'AmbientCondPattern'}];
 
 
+% Loop over all compounds in comps list.
 redo = 1;
-for com = 1:length(comps)
-    
+for com = 1:length(comps)    
     % assumed a naming convention
     ifile1  = sprintf('%sEFA_HOT_Subsegm_%s.csv',HBEFA_path,char(comps(com)));
     ifile2  = sprintf('%sHGV/EFA_HOT_Subsegm_%s_hgv.csv',HBEFA_path,char(comps(com)));
@@ -73,14 +64,13 @@ for com = 1:length(comps)
         end
         ShoulBeNumeric = logical(ShoulBeNumeric);
 
-        
         % Thers a problem in some of the files where columns are read as
         % different types of variablse. Therefore access each table and check
         % if the right columns are numeric.
         numericVars1 = varfun(@isnumeric,Tn1,'output','uniform');
         numericVars2 = varfun(@isnumeric,Tn2,'output','uniform');
         
-        % table 1 first
+        % table 1 first 
         NT1 =table;
         for i = 1:width(Tn1)
             fprintf('%02i :: %s\n',i,char(Tn1.Properties.VariableNames(i)))
@@ -112,11 +102,14 @@ for com = 1:length(comps)
         end
         NT2.Properties.VariableNames = Tn2.Properties.VariableNames;
         
+        % Now that both fields have the same numeric columns,
         % combine the two tables
         Tn = [NT1;NT2];
-        % Test that
-        Old = [Tn1(1,:);Tn2(1,:);Tn1(end,:);Tn2(end,:)]
-        New = [NT1(1,:);NT2(1,:);NT1(end,:);NT2(end,:)]
+        if debug_mode
+            % Test that
+            Old = [Tn1(1,:);Tn2(1,:);Tn1(end,:);Tn2(end,:)]
+            New = [NT1(1,:);NT2(1,:);NT1(end,:);NT2(end,:)]
+        end
         
         writetable(Tn,ifile3)
         clear Tn1 Tn2 NT1 NT2
@@ -168,6 +161,7 @@ for com = 1:length(comps)
     T.ENGINE        = Tn.SizeClasse;
     T.EUROCAT       = Tn.EmConcept;
     
+    traffCon = unique(T.ROAD_COND);
     % Numerical columns: with silightly simplified names.
     T.GRADIENT      = Gradient';
     
@@ -382,7 +376,7 @@ for com = 1:length(comps)
     
     % save(sprintf('EFA_matrix_RAW_%s',char(comps(com))),'roads','EF_AVG','EF_000','EF_100')
     oEFfile = sprintf('%s/EFA_matrix41_RAW_%s',tfold,char(comps(com)));
-    save(oEFfile,'roads','EF_AVG','EF_000','EF_100');
+    save(oEFfile,'roads','EF_AVG','EF_000','EF_100','traffCon');
     fprintf('Saved temporary file\n%s\n',oEFfile)
     
     clear Gradient Tn T RTID roads EF_*

@@ -73,8 +73,6 @@ LightVehiclesIdx =  TM.ClassNum==1|TM.ClassNum==2;
 HeavyVehiclesIdx =  TM.ClassNum==3|TM.ClassNum==4;
 BusesVehiclesIdx =  TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 
-
-
 VD               = Vehicle_dist.Vdist;
 
 %--------------------------------------------------------------

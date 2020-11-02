@@ -4,7 +4,8 @@ function Emission_Factor_Model_group_HBEFA()
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold comps SSB_Vehicle_dist Vehicle_source
+global tfold comps SSB_Vehicle_dist Vehicle_source debug_mode
+global EFA EF_AVG roads
 
 
 % global rfid
@@ -19,7 +20,7 @@ Vehicle_weight = 'Uniform';
     
     
 fprintf('\tin Emission_Factor_Model_group_HBEFA\n')
-fprintf('---   Grouping Vehicles according to \n---   Model SSB HBEFA merger specifications \n\n')
+fprintf('---   Grouping Vehicles according to ---\n---   Model SSB HBEFA merger specifications ---\n%s \n',SSB_Vehicle_dist)
 
 T = readtable(SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
 
@@ -27,8 +28,10 @@ T = readtable(SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
 modelN = unique(T.ModelNumber);
 fprintf('Found %i Model Vehicles \n',length(modelN))
 
+ConVfile = sprintf('%s/EFA_conversion.xlsx',tfold);
+
 for com =1:length(comps)
-    fprintf('Spec| %s\n',char(comps(com)))
+    fprintf('<--- \nSpec| %s\n',char(comps(com)))
     iEFfile = sprintf('%s/EFA_matrix41_RAW_%s',tfold,char(comps(com)));
     oEFfile = sprintf('%s/EFA_matrix41_MODEL_%s',tfold,char(comps(com)));
     load(iEFfile);
@@ -40,7 +43,7 @@ for com =1:length(comps)
     
     % Defines the EFA
     EFA = zeros(length(modelN),size(EF_AVG,2),size(EF_AVG,3),size(EF_AVG,4),size(EF_AVG,5),size(EF_AVG,6));
-    for mod=1:length(modelN)
+    for mod = 1:length(modelN)
         Tsub  = T(T.ModelNumber==modelN(mod),:);
         %##################
         % errrrrorrrr  Need to add column "HBEFA_Num" to the sheet!!!!!
@@ -84,7 +87,10 @@ for com =1:length(comps)
                 end
         end % switch
     end % for mod
+    
+    Emission_Factor_Test_HBEFA_to_MODEL_conversion(com,ConVfile)
 
+    
     save(oEFfile,'EFA','T');
     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
     
