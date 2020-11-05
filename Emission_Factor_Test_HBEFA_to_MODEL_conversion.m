@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function Emission_Factor_Test_HBEFA_to_MODEL_conversion(com,ConVfile)
 global EFA EF_AVG comps roads
 fprintf('\tin Emission_Factor_Test_HBEFA_to_MODEL_conversion\n')

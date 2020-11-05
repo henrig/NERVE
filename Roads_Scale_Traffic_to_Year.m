@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [Sn] = Roads_Scale_Traffic_to_Year(RLinks)
 % Scale_Road_Traffic_Year function takes a traffic file and scales it
 % from the year (Ryear) to a new year (Tyear) based on the csv file. It
@@ -84,13 +99,7 @@ Tlink.B_ADT = B_adt;
 
 
 
-
-
 fprintf('Structuring Roads \n')
-clear f
-for i=1:length(Listfields)
-   f(i)  = find(ismember(Tlink.Properties.VariableNames,Listfields(i)));
-end
 light_adt = find(ismember(Tlink.Properties.VariableNames,'L_ADT'));
 heavy_adt = find(ismember(Tlink.Properties.VariableNames,'H_ADT'));
 bus_adt   = find(ismember(Tlink.Properties.VariableNames,'B_ADT'));
@@ -99,8 +108,20 @@ Tlink.Properties.VariableNames(light_adt) = {sprintf('L_ADT%04i',Tyear)};
 Tlink.Properties.VariableNames(heavy_adt) = {sprintf('H_ADT%04i',Tyear)};
 Tlink.Properties.VariableNames(bus_adt)   = {sprintf('B_ADT%04i',Tyear)};
 
-Sn = table2struct(Tlink(:,f));
-% l = extractfield(Sn,'DISTANCE')
+Sn = table2struct(Tlink);
 
-
+% clear f
+% for i=1:length(Listfields)
+%    f(i)  = find(ismember(Tlink.Properties.VariableNames,Listfields(i)));
+% end
+% 
+% light_adt = find(ismember(Tlink.Properties.VariableNames,'L_ADT'));
+% heavy_adt = find(ismember(Tlink.Properties.VariableNames,'H_ADT'));
+% bus_adt   = find(ismember(Tlink.Properties.VariableNames,'B_ADT'));
+% 
+% Tlink.Properties.VariableNames(light_adt) = {sprintf('L_ADT%04i',Tyear)};
+% Tlink.Properties.VariableNames(heavy_adt) = {sprintf('H_ADT%04i',Tyear)};
+% Tlink.Properties.VariableNames(bus_adt)   = {sprintf('B_ADT%04i',Tyear)};
+% 
+% Sn = table2struct(Tlink(:,f));
 end

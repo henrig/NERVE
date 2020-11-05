@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [Sn] = Roads_Add_Urban(RLinks)
 %-------------------------------------------------------------------------
 % Miljodirektoratet Traffic emission model NERVE:
@@ -43,7 +58,7 @@ for i=1:length(Tshape)
      my=nanmean(Tshape(i).Y);    
      dst =sqrt((MIDPOINT_X-mx).^2 + (MIDPOINT_Y-my).^2)*1e-3;    
      idx = find(dst<max_dist);
-     fprintf('Checking %6i roads in tettsted %04i %12s',length(idx),i,char(Tshape(i).Tettstedsn))
+     fprintf('Checking %6i roads in tettsted %04i_%-18s',length(idx),i,char(Tshape(i).Tettstedsn))
      IN = inpolygon(MIDPOINT_X(idx), MIDPOINT_Y(idx),Tshape(i).X,Tshape(i).Y);
      I  = cat(2,I,idx(IN));
      fprintf('... Found %6i roads \n',length(idx(IN)))

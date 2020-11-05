@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [Sn] = Emissions_Calculations_SSB(Calc_Links,Vehicle_dist)
 %--------------------------------------------------------------------------
 %
@@ -23,6 +38,10 @@ fprintf('RoadLinks               :  %i \n',size(Calc_Links,1))
 file = sprintf('%s%s',tfold,'roads');
 fprintf('Warning,using roads file not produced by NERVE model\n%s\n',file)
 load(file)
+
+
+
+
 
 L     = extractfield(Calc_Links,sprintf('L_ADT%04i',Tyear));  % Traffic Volume (# day-1)
 H     = extractfield(Calc_Links,sprintf('H_ADT%04i',Tyear));  % Traffic Volume (# day-1)
@@ -94,6 +113,8 @@ nEM_Tot = zeros(size(aEM_L));
 
 % set which compound (com)
 for com = 1:length(comps)
+    
+    
     Zroads = 0;
     % load the emission factor
     EFfile = sprintf('%sEFA_matrix41_MODEL_%s.mat',tfold,char(comps(com)));
