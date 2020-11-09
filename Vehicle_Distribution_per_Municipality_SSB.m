@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [Vehicle_dist] = Vehicle_Distribution_per_Municipality_SSB()
 % Module for processing SSB DD. 
 global Tyear SSB_Vehicle_dist
@@ -68,6 +83,8 @@ for i=1:size(TrafficIN)
 end
 
 Vehicle_dist.Vdist         = modelVdistIN;
+Vehicle_dist.modelNV       = modelNV;
+Vehicle_dist.modelTD       = modelTD;
 Vehicle_dist.D1_KommNr     = SSBkomm;
 Vehicle_dist.D2_Vehicle    = T.Name;
 Vehicle_dist.D2_VehicleNum = T.ModelNumber;

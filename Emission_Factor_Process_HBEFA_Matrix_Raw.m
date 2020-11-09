@@ -366,8 +366,11 @@ for com = 1:length(comps)
                                     EF_100(v,r,s,g,c,e) = mean(Tt.EFA_100(I));
                                     count(I) = 1;
                                 else
-                                    warning('oops, multiply defined EF')
-                                    Tt(I,:)
+                                    EF_AVG(v,r,s,g,c,e) = mean(Tt.EFA_AVG(I(1)));
+                                    EF_000(v,r,s,g,c,e) = mean(Tt.EFA_0(I(1)));
+                                    EF_100(v,r,s,g,c,e) = mean(Tt.EFA_100(I(1)));
+                                  warning('oops, multiply defined EF')
+                                    %Tt(I,:)
                                 end
                             else
                                 EF_AVG(v,r,s,g,c,e) = NaN;

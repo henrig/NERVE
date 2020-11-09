@@ -86,6 +86,8 @@ for com =1:length(comps)
                     %Tsub
                 end
                 for  i =1:size(EFsub,1)
+                    
+                    
                     EFA(modelN(mod),:,:,:,:,:)= EFA(modelN(mod),:,:,:,:,:) + ...
                         EFsub(i,:,:,:,:,:)*Tsub.HBEFA_Weight(i);
                 end
@@ -106,7 +108,7 @@ for com =1:length(comps)
     Emission_Factor_Test_HBEFA_to_MODEL_conversion(com,ConVfile)
 
     
-    save(oEFfile,'EFA','T');
+    save(oEFfile,'EFA','T','roads');
     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
     
 end % comps

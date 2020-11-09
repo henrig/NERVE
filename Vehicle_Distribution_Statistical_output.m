@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function Vehicle_Distribution_Statistical_output(Vehicle_data,T)
 %--------------------------------------------------------------------------
 % Statistical output.
@@ -12,6 +27,7 @@ function Vehicle_Distribution_Statistical_output(Vehicle_data,T)
 % Tb.OsloPctEX = modelVdistIN(1,:)'*100;
 % writetable(T,'National_SSB_Vehicle_Number_Distribution.xlsx','Sheet','MunicipalStats_VehicleDistribution')
 % National Number of vehicles
+global ofiles
 National = squeeze(sum(Vehicle_data.YNV,2));
 k=1;
 National2D = zeros(size(National,2)*size(National,3),size(National,1));
@@ -38,7 +54,7 @@ for k = 1:size(National,1)
     vn = find(ismember(Ts.Properties.VariableNames,'Var1'));
     Ts.Properties.VariableNames(vn)= {sprintf('x%i',Vehicle_data.D1_yrs(k))};
 end
-file = 'National_SSB_Vehicle_Number_Distribution.xlsx';
+file    = 'National_SSB_Vehicle_Number_Distribution.xlsx';
 writetable(T,file,'Sheet','NationalNumberVehicles')
 fprintf('Wrote National Vehicle stats file :\n%s\n',file)
 % National Driving Distance

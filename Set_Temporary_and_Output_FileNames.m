@@ -15,6 +15,8 @@ else
     tfiles.RL      = sprintf('%sHEDGE_RL_%4i_%s_temp',tfold,Tyear,traffile);
 end
 
-ofiles.RLShape = sprintf('%sTraffic_Emissions_%4i',ofold,Tyear);
+ofiles.RLShape  = sprintf('%sTraffic_Emissions_%4i',ofold,Tyear);
+ofiles.SSB_Stat = sprintf('%sNational_SSB_Vehicle_Number_Distribution.xlsx',ofold); 
+
 
 end

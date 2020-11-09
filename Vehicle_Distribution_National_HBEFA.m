@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [Tn] = Vehicle_Distribution_National_HBEFA()
 % Function to make 778_sorted, and extract the relavant years distribution
 % of vehicles.
@@ -47,5 +62,4 @@ catch
 end
 yn = sprintf('x%i',Tyear);
 Tn = Tout(:,[1,find(ismember(Tout.Properties.VariableNames,yn)),width(Tout)]);
-
 end

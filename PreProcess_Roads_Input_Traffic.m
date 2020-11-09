@@ -45,8 +45,8 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 % 20.09.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold use_temporary_files tfiles
-global traffile Komm_shape Listfields Inputfields
+global use_temporary_files tfiles
+global traffile Listfields Inputfields
 
 fprintf('in PreProcess_Input_Traffic.\n')
 

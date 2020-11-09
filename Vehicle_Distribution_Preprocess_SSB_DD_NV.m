@@ -1,3 +1,18 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV()
 % This function is made to read and transform the Driving Distance (DD)
 % and Number of Vehicles per Municipality supplied by SSB. With
@@ -11,7 +26,7 @@ function Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV()
 %  78 nybiltype
 %   7 regaar
 
-global SSB_vehicle Kartverket tfold use_temporary_files tfiles
+global SSB_vehicle Kartverket use_temporary_files tfiles
 
 fprintf('\t in Vehicle_Distribution_Preprocess_SSB_DD_NV\n')
 
