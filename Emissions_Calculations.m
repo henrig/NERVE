@@ -13,23 +13,24 @@
 % You should have received a copy of the GNU General Public License
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
-function [Sn] = Emissions_Calculations(Calc_Links,Vehicle_dist)
+function [Sn] = Emissions_Calculations()
 %--------------------------------------------------------------------------
 %
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-
+global RLinks 
 % Calculate_Emissions calculates emissions 
 global Vehicle_source
 
 if ismember(Vehicle_source,{'HBEFA'})
-    [Sn] = Emissions_Calculations_HBEFA(Calc_Links);
+    [Sn] = Emissions_Calculations_HBEFA(RLinks);
     return
 end
 
 if ismember(Vehicle_source,{'SSB'})
-    [Sn] = Emissions_Calculations_SSB(Calc_Links,Vehicle_dist);
+    Emission_Factors_OnRoadAllCond()
+    [Sn] = Emissions_Calculations_SSB();
     return
 end
 

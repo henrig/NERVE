@@ -54,8 +54,8 @@ end
 idL = T.ClassNum<3;
 idH = T.ClassNum>4;
 idB = ~idL&~idH;
-modelNVfrac = nan(size(modelNV));
-modelTDfrac = nan(size(modelTD));
+modelNVfrac = zeros(size(modelNV));
+modelTDfrac = zeros(size(modelTD));
 for i=1:size(modelNV,1)
     modelNVfrac(i,idL) = modelNV(i,idL)/nansum(modelNV(i,idL));
     modelNVfrac(i,idH) = modelNV(i,idH)/nansum(modelNV(i,idH));
@@ -64,6 +64,11 @@ for i=1:size(modelNV,1)
     modelTDfrac(i,idL) = modelTD(i,idL)/nansum(modelTD(i,idL));
     modelTDfrac(i,idH) = modelTD(i,idH)/nansum(modelTD(i,idH));
     modelTDfrac(i,idB) = modelTD(i,idB)/nansum(modelTD(i,idB));
+    if isnan(sum(modelTDfrac(i,:)))
+        idn = find(isnan(modelTDfrac(i,:)));
+        modelTDfrac(i,idn) = 0;
+    end
+        
 end
 
 % Call the exchange matrix:
@@ -73,11 +78,12 @@ end
 % driving in each municipality
 modelVdistIN = zeros(size(modelTDfrac));
 for i=1:size(TrafficIN)
-    % add test to check that i match the right SSB municipality (replace i).
+    % add test to check that i match the right SSB municipality (= replace i).
     idkSSB = find(SSBkomm==EXkmneNr(i));
     in = find(TrafficIN(i,:)>0);
     for j = 1:length(in)
            kmm = EXkmneNr(in(j));
+           
            modelVdistIN(idkSSB,:) = modelVdistIN(idkSSB,:) +(modelTDfrac(in(j),:)*TrafficIN(i,in(j))/100);
     end
 end

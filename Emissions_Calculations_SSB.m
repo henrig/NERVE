@@ -1,240 +1,272 @@
 %--------------------------------------------------------------------------
 % This file is part of NERVE
-% 
+%
 % NERVE is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation version 3.
-% 
+%
 % NERVE is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 % GNU General Public License for more details.
-% 
+%
 % You should have received a copy of the GNU General Public License
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
-function [Sn] = Emissions_Calculations_SSB(Calc_Links,Vehicle_dist)
+function [Sn] = Emissions_Calculations_SSB()
 %--------------------------------------------------------------------------
 %
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold Tyear SSB_Vehicle_dist comps
+global tfold Tyear SSB_Vehicle_dist comps RLinks Vehicle_dist Vehicle_weight
+global debug_mode
 
-% 1) Where does variable roads come from?
-% 1b) Does it need to be updated in Emission Factor stuff.
+%--------------------------------------------------------------
+% MUNICIPALITY EMISSION FACTORS FOR ALL ROADS
+%--------------------------------------------------------------
 
-% Need Vehicle Distribution for municipalities. 
 
 
 %--------------------------------------------------------------
-% ROAD LINK 
+% ROAD LINK
 %--------------------------------------------------------------
 % extract fields needed for calculations
 fprintf('\nExtracts necessary fields   \n')
 fprintf('Traffic and Vehicle Year:  %i \n',Tyear)
-fprintf('RoadLinks               :  %i \n',size(Calc_Links,1))
+fprintf('RoadLinks               :  %i \n',size(RLinks,1))
 
 file = sprintf('%s%s',tfold,'roads');
 fprintf('Warning,using roads file not produced by NERVE model\n%s\n',file)
 load(file)
 
+TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
+BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
+HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 
 
 
 
-L     = extractfield(Calc_Links,sprintf('L_ADT%04i',Tyear));  % Traffic Volume (# day-1)
-H     = extractfield(Calc_Links,sprintf('H_ADT%04i',Tyear));  % Traffic Volume (# day-1)
-B     = extractfield(Calc_Links,sprintf('B_ADT%04i',Tyear));  % Traffic Volume (# day-1)
-HBEFA = extractfield(Calc_Links,'HBEFA_EQIV');                % Type of Road        (Access->MW)
-SPD   = extractfield(Calc_Links,'SPEED');                     % Speed on Road       (km hr-1)
-DEC   = extractfield(Calc_Links,'SLOPE');                     % Verticality of Road (%)
-ENV   = extractfield(Calc_Links,'URBAN');                     % Urbanity of Road    (URB/RUR)
-LEN   = extractfield(Calc_Links,'DISTANCE')*1000;             % Length of Road      (in metres)
-RU    = extractfield(Calc_Links,'RUSH_DELAY');
+% HBEFA = extractfield(RLinks,'HBEFA_EQIV');                % Type of Road        (Access->MW)
+% SPD   = extractfield(RLinks,'SPEED');                     % Speed on Road       (km hr-1)
+% DEC   = extractfield(RLinks,'SLOPE');                     % Verticality of Road (%)
+% ENV   = extractfield(RLinks,'URBAN');                     % Urbanity of Road    (URB/RUR)
+% LEN   = extractfield(RLinks,'DISTANCE')*1000;             % Length of Road      (in metres)
+% RU    = extractfield(RLinks,'RUSH_DELAY');
 
-% Classification of rush hour traffic. 0-4 (4 is congested)
-ru                 = zeros(size(RU));
-ru(RU<=0.1)        = 1;
-ru(RU>0.1 & RU<=4) = 2;
-ru(RU>4 & RU<=15)  = 3;
-ru(RU>15)          = 4;
+dayInYear = round(datenum([Tyear+1, 1, 1, 12 0 0 ])-datenum([Tyear, 1, 1, 12, 0 ,0]));
+fprintf('Found %i days in year: %i\n',dayInYear,Tyear)
 
-
-dayInYear = round(datenum([Tyear+1, 1, 1, 12 0 0 ])-datenum([Tyear, 1, 1, 12, 0 ,0])); 
-fprintf('Using %i days in year\n',dayInYear)
 % Make a cleaned version for writing to file
-Tout = struct2table(Calc_Links);
+Tout = struct2table(RLinks);
 
-MP_airbornefraction = 0.1;
-MP_wear_Light       = 0.1;
-MP_wear_Heavy       = 0.5;
+
+% roads
+KommunerS = extractfield(RLinks,'KOMMS');
+KommunerE = extractfield(RLinks,'KOMME');
+uKomm    = unique(KommunerS);
 
 % Congestion weights.  Traffic part delayed (TPD)
 % Combine the different congestion levels by volume to determine the
 % actual EF:
-TPD=[1.0,0.0,0.0,0.0,0.0;...
-    0.6,0.4,0.0,0.0,0.0;...
-    0.6,0.2,0.2,0.0,0.0;...
-    0.6,0.15,0.1,0.1,0.05];
+TPD_L=[1.0, 0.0, 0.0,  0.0,  0.0;...
+    0.6, 0.4, 0.0,  0.0,  0.0;...
+    0.6, 0.2, 0.2,  0.0,  0.0;...
+    0.5, 0.2, 0.15, 0.15, 0.0];
+
+TPD_H=[1.0, 0.0, 0.0,  0.0,  0.0;...
+    0.6, 0.4, 0.0,  0.0,  0.0;...
+    0.6, 0.2, 0.2,  0.0,  0.0;...
+    0.5, 0.2, 0.15, 0.15, 0.0];
+
+TPD_B=[1.0, 0.0, 0.0,  0.0,  0.0;...
+    0.6, 0.4, 0.0,  0.0,  0.0;...
+    0.6, 0.2, 0.2,  0.0,  0.0;...
+    0.5, 0.2, 0.15, 0.15, 0.0];
+%-----------------------------------
+TPD  =[1.0, 0.0, 0.0,  0.0,  0.0;...
+    0.6, 0.4, 0.0,  0.0,  0.0;...
+    0.6, 0.2, 0.2,  0.0,  0.0;...
+    0.5, 0.2, 0.15, 0.15, 0.0];
 
 
 
-%%%%% Internal weight for traffic type going from Class -> Traffic type
-%    Class_Weight = [1, 0.8, 0.2, 0.5, 0.5, 0.5, 0.5];
-
-%--------------------------------------------------------------
-% VEHICLE DISTRIBUTION 
-%--------------------------------------------------------------
-TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
-
-LightVehiclesIdx =  TM.ClassNum==1|TM.ClassNum==2;
-HeavyVehiclesIdx =  TM.ClassNum==3|TM.ClassNum==4;
-BusesVehiclesIdx =  TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
-
-VD               = Vehicle_dist.Vdist;
-
-%--------------------------------------------------------------
-% EMISSION FACTORS 
-%--------------------------------------------------------------
-
-aEM_L   = zeros(length(comps),length(Calc_Links));
-aEM_B   = zeros(size(aEM_L));
-aEM_H   = zeros(size(aEM_L));
-aEM_2W  = zeros(size(aEM_L));
-aEM_Tot = zeros(size(aEM_L));
-
-nEM_L   = zeros(size(aEM_L));
-nEM_B   = zeros(size(aEM_L));
-nEM_H   = zeros(size(aEM_L));
-nEM_2W  = zeros(size(aEM_L));
-nEM_Tot = zeros(size(aEM_L));
-
-
-% set which compound (com)
 for com = 1:length(comps)
-    
-    
-    Zroads = 0;
-    % load the emission factor
-    EFfile = sprintf('%sEFA_matrix41_MODEL_%s.mat',tfold,char(comps(com)));
-    load(EFfile)
-    fprintf('Loaded:\n%s\n',EFfile)
-    fprintf('******* %s **********\n',char(comps(com)))
-    fprintf('Loaded: %s Vehicles     : %i \n',char(comps(com)), size(EFA,1))
-    
-    % loop through Roads individually
-    for f = 1:length(Calc_Links)
-        komm = extractfield(Calc_Links(f),'KOMM');
-        Kidx = find(Vehicle_dist.D1_KommNr == komm);
-        Km       = LEN(f)*1e-3;
-        % Set the empty streets speedlimit to 40
-        % correct whatever have slipped through the original
-        % classification of the roads file.
-        if rem(SPD(f),10) ~= 0; SPD(f) = round(SPD(f)/10)*10; end
-        if SPD(f)< 30; SPD(f)=40; end
-        if SPD(f)>130; SPD(f)=40; end
-        
-        % find the speed index on the road
-        SpIdx(f) = find(roads.RoadSpeeds==SPD(f));
-        
-        % Find the slope index of the road
-        SlIdx(f) = find(roads.RoadGradient==DEC(f));
-        
-        % find the environment
-        if ENV(f) == 1
-            EnIdx(f) = 2;
-        elseif ENV(f) == 0
-            EnIdx(f) = 1;
-        else
-            EnIdx(f) = 2;
-            warning(sprintf('No environment set ENV = %i',ENV(f)))
-        end
-        
-        % Fix to update road definitions to what is included in HBEFAv4.1
-        if HBEFA(f) == 10 && SPD(f) == 40
-            HBEFA(f) = 3;
-        end
-        
-        % calculate the emissions per vehicle (empv) driving the link.
-        %   Length(Km) * EF(g/Km) = gram
-        for cg = 1:5
-            RLEM(cg,:) = VD(Kidx,:)'.*EFA(:,HBEFA(f),SpIdx(f),SlIdx(f),cg,EnIdx(f))*Km;
-        end
-        
-        % Test the average emissions for the different classes.
-        Lempv = sum(RLEM(:,LightVehiclesIdx),2);
-        Hempv = sum(RLEM(:,HeavyVehiclesIdx),2);
-        Bempv = sum(RLEM(:,BusesVehiclesIdx),2); 
+    fprintf('<--- %s ---\n',char(comps(com)))
 
-        
-        % use the rushour integer weight to weight the different emissions.
-        LemAve =sum(Lempv.*TPD(ru(f),:)');
-        HemAve =sum(Hempv.*TPD(ru(f),:)');
-        BemAve =sum(Bempv.*TPD(ru(f),:)');
+    TEF = readtable('OnRoadEF_RoadClasses.xlsx','Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);    
+    % load(oEFfile,'TFout','roads');
+    
+    ttef = TEF(:,1:7);
+    
+    % All road links emissions Light / Heavy / Bus
+    nEMISS_L = zeros(size(RLinks));
+    nEMISS_H = zeros(size(RLinks));
+    nEMISS_B = zeros(size(RLinks));
 
-        EM_L(f) = LemAve *L(f)*dayInYear;
-        EM_H(f) = HemAve *L(f)*dayInYear;       
-        EM_B(f) = BemAve *L(f)*dayInYear;
-        EM_2W(f) = 0;        
-        EM_Tot(f)  = EM_L(f)+EM_H(f)+EM_B(f)+EM_2W(f);
-                
-        if isnan(EM_Tot(f))
-            if isnan(EM_L(f))
-             fprintf('road %i No emissions  \n',f)                
+    
+    % All road links kilometer per type of road Light / Heavy / Bus
+    nDD_L = zeros(height(ttef));
+    nDD_H = zeros(height(ttef));
+    nDD_B = zeros(height(ttef));    
+    
+    for komm = 1:length(uKomm)
+        % extract all necessary roadLinks:
+        f1 = find(KommunerS == uKomm(komm));
+        f2 = find(KommunerE == uKomm(komm));
+        f  = unique([f1,f2]);
+        
+        MRLinks = RLinks(f);        
+        fprintf('\n-%3i Kommune_%04i --- \n',komm,Vehicle_dist.D1_KommNr(komm))
+        fprintf('     Has %i Roads     \n',length(f))
+        
+        % extract all roadEFs:
+        ref = find(contains(TEF.Properties.VariableNames,{sprintf('%i',uKomm(komm))}));
+        Tef = [ttef,TEF(:,ref)];
+        
+        Lef = find(ismember(Tef.Properties.VariableNames,sprintf('EF_Light_%04i',Vehicle_dist.D1_KommNr(komm))));
+        Hef = find(ismember(Tef.Properties.VariableNames,sprintf('EF_Heavy_%04i',Vehicle_dist.D1_KommNr(komm))));
+        Bef = find(ismember(Tef.Properties.VariableNames,sprintf('EF_Buses_%04i',Vehicle_dist.D1_KommNr(komm))));
+
+        L       = extractfield(MRLinks,sprintf('L_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+        H       = extractfield(MRLinks,sprintf('H_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+        B       = extractfield(MRLinks,sprintf('B_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+        HBEFA   = extractfield(MRLinks,'HBEFA_EQIV');                % Type of Road        (Access->MW)
+        SPD     = extractfield(MRLinks,'SPEED');                     % Speed on Road       (km hr-1)
+        DEC     = extractfield(MRLinks,'SLOPE');                     % Verticality of Road (%)
+        ENV     = extractfield(MRLinks,'URBAN');                     % Urbanity of Road    (URB/RUR)
+        LEN     = extractfield(MRLinks,'DISTANCE');                  % Length of Road      (in kilometres)
+        RU      = extractfield(MRLinks,'RUSH_DELAY');
+        
+        % Classification of rush hour traffic. 0-4 (4 is congested)
+        ru                 = zeros(size(RU));
+        ru(RU<=0.1)        = 1;
+        ru(RU>0.1 & RU<=4) = 2;
+        ru(RU>4 & RU<=15)  = 3;
+        ru(RU>15)          = 4;
+        
+        IDO     = extractfield(MRLinks,'IDO');
+        KOMS    = extractfield(MRLinks,'KOMMS');
+        
+        if debug_mode
+            fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f   \n',1e-6*sum(L.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,LightVehiclesIdx)))
+            fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f   \n',1e-6*sum(H.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,HeavyVehiclesIdx)))
+            fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f   \n',1e-6*sum(B.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,BusesVehiclesIdx)))
+        end
+        
+        % *my is the total distance driven on each link in Tyear
+        Lmy = zeros(size(Tef,1),1);
+        Hmy = zeros(size(Tef,1),1);
+        Bmy = zeros(size(Tef,1),1);
+        
+        % EMISS_* are the road link emissions for each link in the
+        % municipality
+        EMISS_L = zeros(size(MRLinks));
+        EMISS_H = zeros(size(MRLinks));
+        EMISS_B = zeros(size(MRLinks));
+        
+        for r =1:length(L)
+            dec  = find(roads.RoadGradient == DEC(r));
+            env  = find(roads.RoadEnvID	  == ENV(r)+1);
+            SPD(r) = round(SPD(r)/10)*10;
+            if SPD(r) < 30;  SPD(r)=30;  end
+            if SPD(r) > 110; SPD(r)=110; end
+            spd  = find(roads.RoadSpeeds  == SPD(r));
+            name = {sprintf('%s/%s-%i/%i%%/%s',char(roads.RoadEnv(env)),char(roads.RoadType(HBEFA(r))),roads.RoadSpeeds(spd),roads.RoadGradient(dec))};
+            
+            idx = find(contains(Tef.Name,name));
+            if KOMS(r) == uKomm(komm)
+                Lmy(idx) = Lmy(idx) + dayInYear *IDO(r)* L(r) *LEN(r)*TPD_L(RU(r)+1,:)';
+                Hmy(idx) = Hmy(idx) + dayInYear *IDO(r)* H(r) *LEN(r)*TPD_H(RU(r)+1,:)';
+                Bmy(idx) = Bmy(idx) + dayInYear *IDO(r)* B(r) *LEN(r)*TPD_B(RU(r)+1,:)';
+            else
+                Lmy(idx) = Lmy(idx) + dayInYear *IDO(r)* L(r) *LEN(r)*TPD_L(RU(r)+1,:)';
+                Hmy(idx) = Hmy(idx) + dayInYear *IDO(r)* H(r) *LEN(r)*TPD_H(RU(r)+1,:)';
+                Bmy(idx) = Bmy(idx) + dayInYear *IDO(r)* B(r) *LEN(r)*TPD_B(RU(r)+1,:)';
             end
-            Zroads = Zroads+1;
-%             fprintf('road %i No emissions  ',f)
-%             fprintf('HBEFA %i; ',HBEFA(f))
-%             fprintf('SpIdx %i; ',SpIdx(f))
-%             fprintf('SlIdx %i; ',SlIdx(f))
-%             fprintf('EnIdx %i\n',EnIdx(f))
-%             fprintf(' %i\n',EnIdx(f))
-%             fprintf('%04i %s/%s/%i/%i%%\n',f,char(roads.RoadEnv(EnIdx(f))),...
-%                 char(roads.RoadType(HBEFA(f))),...
-%                 roads.RoadSpeeds(SpIdx(f)),...
-%                 roads.RoadGradient(SlIdx(f)))
+            EMISS_L(r) = sum(Lmy(idx).*table2array(Tef(idx,Lef)));
+            EMISS_H(r) = sum(Hmy(idx).*table2array(Tef(idx,Hef)));
+            EMISS_B(r) = sum(Bmy(idx).*table2array(Tef(idx,Bef)));
         end
-        %if rem(f,100000)==0; fprintf('Road = %i of %i\n',f, size(Calc_Links,1)); end
-    end % road link loop.
+        tEML = Lmy.* table2array(Tef(:,Lef));
+        tEMH = Hmy.* table2array(Tef(:,Hef));
+        tEMB = Bmy.* table2array(Tef(:,Bef));
+        
+        nEMISS_L(f) = nEMISS_L(f) + EMISS_L;
+        nEMISS_H(f) = nEMISS_H(f) + EMISS_H;
+        nEMISS_B(f) = nEMISS_B(f) + EMISS_B;
+        
+ 
+        if debug_mode
+            fprintf('---- Lette   %11.1f   Kilometer (%3.0f%%) \n'  ,sum(L),100*sum(Lmy)/sum(Lmy+Hmy+Bmy))
+            fprintf('---- Tunge   %11.1f   Kilometer (%3.0f%%) \n'  ,sum(H),100*sum(Hmy)/sum(Lmy+Hmy+Bmy))
+            fprintf('---- Busser  %11.1f   Kilometer (%3.0f%%) \n\n',sum(B),100*sum(Bmy)/sum(Lmy+Hmy+Bmy))
+            
+            fprintf('---- Lette   %11.1f   Gram %s (%3.0f%%)\n'  ,sum(tEML),char(comps(com)),100*sum(tEML)/sum(tEML+tEMH+tEMB))
+            fprintf('---- Tunge   %11.1f   Gram %s (%3.0f%%)\n'  ,sum(tEMH),char(comps(com)),100*sum(tEMH)/sum(tEML+tEMH+tEMB))
+            fprintf('---- Busser  %11.1f   Gram %s (%3.0f%%)\n\n',sum(tEMB),char(comps(com)),100*sum(tEMB)/sum(tEML+tEMH+tEMB))
+            
+            fprintf('---- Lette   %11.1f   Gram/Kilometer \n'  ,sum(tEML)/sum(Lmy))
+            fprintf('---- Tunge   %11.1f   Gram/Kilometer \n'  ,sum(tEMH)/sum(Hmy))
+            fprintf('---- Busser  %11.1f   Gram/Kilometer \n\n',sum(tEMB)/sum(Bmy))
+        end
+        
+        Tef.Light_DD = Lmy;
+        Tef.Heavy_DD = Hmy;
+        Tef.Buses_DD = Bmy;
+        
+        Tef.Properties.VariableNames(find(ismember(Tef.Properties.VariableNames,'Light_DD'))) = {sprintf('DD_Light_%04i',Vehicle_dist.D1_KommNr(komm))};
+        Tef.Properties.VariableNames(find(ismember(Tef.Properties.VariableNames,'Heavy_DD'))) = {sprintf('DD_Heavy_%04i',Vehicle_dist.D1_KommNr(komm))};
+        Tef.Properties.VariableNames(find(ismember(Tef.Properties.VariableNames,'Buses_DD'))) = {sprintf('DD_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
+    end
+    fprintf('\n---- NORGE --- \n')
+    fprintf('---- Lette   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*sum(nEMISS_L),char(comps(com)),100*nansum(nEMISS_L)/nansum(nEMISS_L+nEMISS_H+nEMISS_B))
+    fprintf('---- Tunge   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(nEMISS_H),char(comps(com)),100*nansum(nEMISS_H)/nansum(nEMISS_L+nEMISS_H+nEMISS_B))
+    fprintf('---- Busser  %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(nEMISS_B),char(comps(com)),100*nansum(nEMISS_B)/nansum(nEMISS_L+nEMISS_H+nEMISS_B))
+    fprintf('---- Totalt  %11.1f   (1000)Ton %s \n\n',1e-9*nansum(nEMISS_B+nEMISS_H+nEMISS_L),char(comps(com)))
     
-    aEM_L(com,:)   = EM_L;
-    aEM_B(com,:)   = EM_B;
-    aEM_H(com,:)   = EM_H;
-    aEM_2W(com,:)  = EM_2W;
-    aEM_Tot(com,:) = EM_Tot;
+    L     = extractfield(RLinks,sprintf('L_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+    H     = extractfield(RLinks,sprintf('H_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+    B     = extractfield(RLinks,sprintf('B_ADT%04i',Tyear));  % Traffic Volume (# day-1)
+    LEN   = extractfield(RLinks,'DISTANCE');
     
-    % Assign the output table an rename the variable added to contain
-    % component information.
-    Tout.EM_Tot = EM_Tot';
-    Tout.Properties.VariableNames(end) = {sprintf('EM_%s',char(comps(com)))};    
-    fprintf('_________________________________________\n')
-    fprintf('Light emissions of %s  : %8.2f Ton\n',char(comps(com)),nansum(EM_L)*1e-6)
-    fprintf('Buses emissions of %s  : %8.2f Ton\n',char(comps(com)),nansum(EM_B)*1e-6)
-    fprintf('Heavy emissions of %s  : %8.2f Ton\n',char(comps(com)),nansum(EM_H)*1e-6)
-    fprintf('_________________________________________\n')
-    fprintf('Total emissions of %s  : %8.2f Ton\n',char(comps(com)),nansum(EM_Tot)*1e-6)
-    fprintf('==========================================\n')
-    fprintf('ZeroRoads %i\n',Zroads)
+    LW  = 1e-6*sum(L.*LEN)*dayInYear;
+    HW  = 1e-6*sum(H.*LEN)*dayInYear;
+    BW  = 1e-6*sum(B.*LEN)*dayInYear;
+    LTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,LightVehiclesIdx)));
+    HTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,HeavyVehiclesIdx)));
+    BTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,BusesVehiclesIdx)));
     
-%     EM_Class(com,1)= sum(EM_L)*1e-6;
-%     EM_Class(com,2)= sum(EM_H)*1e-6;
-%     EM_Class(com,3)= sum(EM_B)*1e-6;
-end % end loop emissions species.
-% in the end, add PM10 emissions of microplastics from tyre wear.
-fprintf('Calculating Tyre-wear...\n')
-Adj      = SPD/70;
-Km       = LEN*1e-3;
-wearL    = Adj.*MP_wear_Light.*(365*L).*Km;
-wearH    = Adj.*MP_wear_Heavy.*(365*(H+B)).*Km;
-Tout.EM_TW10  = MP_airbornefraction*(wearL + wearH)';
+    fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,LTD,100*LW/LTD)
+    fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
+    fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
 
-% fileout = sprintf('%sOutput_%i.mat',tfold,Tyear);
-% %save(fileout,'Class_Weight','TPD','aEM_L','aEM_H','aEM_B','aEM_2W','aEM_Tot','nEM_L','nEM_H','nEM_B','nEM_2W','nEM_Tot')
-% save(fileout,'Class_Weight','TPD','aEM_L','aEM_H','aEM_B','aEM_2W','aEM_Tot')
-
-
-% Finally write the output to a shape file.
-fprintf('Re-Structuring Roads...\n')
-Sn = table2struct(Tout);
+    TLinks = struct2table(RLinks);
+    TLinks.LetEM =  nEMISS_L;
+    TLinks.HeaEM =  nEMISS_H;
+    TLinks.BusEM =  nEMISS_B;
+    
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'LetEM'))) = {sprintf('EM_Light_%s',char(comps(com)))};
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'HeaEM'))) = {sprintf('EM_Heavy_%s',char(comps(com)))};
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'BusEM'))) = {sprintf('EM_Buses_%s',char(comps(com)))};
+    RLinks = table2struct(TLinks);
 end
+Sn = RLinks;
+end
+
+% Adj      = SPD/70;
+% Km       = LEN*1e-3;
+% wearL    = Adj.*MP_wear_Light.*(365*L).*Km;
+% wearH    = Adj.*MP_wear_Heavy.*(365*(H+B)).*Km;
+% Tout.EM_TW10  = MP_airbornefraction*(wearL + wearH)';
+%
+% % fileout = sprintf('%sOutput_%i.mat',tfold,Tyear);
+% % %save(fileout,'Class_Weight','TPD','aEM_L','aEM_H','aEM_B','aEM_2W','aEM_Tot','nEM_L','nEM_H','nEM_B','nEM_2W','nEM_Tot')
+% % save(fileout,'Class_Weight','TPD','aEM_L','aEM_H','aEM_B','aEM_2W','aEM_Tot')
+%
+%
+% % Finally write the output to a shape file.
+% fprintf('Re-Structuring Roads...\n')
+% Sn = table2struct(Tout);
+%end
