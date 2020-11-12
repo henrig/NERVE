@@ -175,9 +175,23 @@ for com =1:length(comps)
         
     end
     
-    save(oEFfile,'TFout','roads');
+    
+    switch char(comps(com))
+        case 'CO2'
+            MunicpalHBEFA_RoadsEF_ = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_','roads','-append');
+        case 'FC'
+        case 'NOx'
+        case 'CO2'
+        case 'CO2'
+        case 'CO2'
+    
+    end
+    
+    
     writetable(TFout,'modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight) )
     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
+
 end
 
 % OLD METHOD

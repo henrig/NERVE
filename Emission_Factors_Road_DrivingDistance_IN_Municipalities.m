@@ -1,6 +1,6 @@
 
 function Emission_Factors_Road_DrivingDistance_IN_Municipalities()
-global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist
+global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist ofiles
 
 
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
@@ -135,11 +135,6 @@ for komm = 1:length(uKomm)
     Tout.Properties.VariableNames(find(ismember(Tout.Properties.VariableNames,'Buses_DD'))) = {sprintf('DD_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
 end
 
-
-save(sprintf('Municipal_DrivingDistances_per_RoadType_%i.mat',Tyear),'Tout')
-writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
-
-
 fprintf('\n---- NORGE --- \n')
 L     = extractfield(RLinks,sprintf('L_ADT%04i',Tyear));  % Traffic Volume (# day-1)
 H     = extractfield(RLinks,sprintf('H_ADT%04i',Tyear));  % Traffic Volume (# day-1)
@@ -155,6 +150,13 @@ BTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,BusesVehiclesIdx)));
 fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,LTD,100*LW/LTD)
 fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
 fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
+
+
+
+writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
+
+DrivingDistances_per_RoadType = Tout;
+save(ofiles.MatlabOutput,'DrivingDistances_per_RoadType','-append')
 
 end
 

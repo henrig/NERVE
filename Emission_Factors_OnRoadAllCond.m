@@ -1,6 +1,6 @@
 function Emission_Factors_OnRoadAllCond()
 global tfold Tyear SSB_Vehicle_dist comps Vehicle_dist Vehicle_weight
-global debug_mode
+global debug_mode ofile
 %--------------------------------------------------------------
 % COMBINE Municipal VEHICLE DISTRIBUTION & EMISSION FACTORS
 %--------------------------------------------------------------
@@ -72,7 +72,7 @@ for com = 1:length(comps)
     ofile = 'OnRoadEF_RoadClasses.xlsx';
     
     OnRoadEF_RoadClasses = Trout;
-    save('OnRoadEF_RoadClasses.mat','OnRoadEF_RoadClasses')
+    save(ofile.MatlabOutput,'OnRoadEF_RoadClasses','-append')
     writetable(Trout,ofile,'Sheet',sprintf('%s_%i',char(comps(com)),Tyear))
     fprintf('%s--- >\n',char(comps(com)))
 end
