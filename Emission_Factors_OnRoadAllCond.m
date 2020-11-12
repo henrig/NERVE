@@ -13,7 +13,6 @@ VD               = Vehicle_dist.Vdist;
 
 % Loop all components to be calculated:
 for com = 1:length(comps)
-    
     % Load the component file with
     fprintf('<--- %s\n',char(comps(com)))
     TFout = readtable('modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight),'PreserveVariableNames',1);
@@ -24,13 +23,18 @@ for com = 1:length(comps)
     
     Trout    =  TFout(:,1:7);
     for komm = 1: length(Vehicle_dist.D1_KommNr)
+        
         if debug_mode
             fprintf('Sum Weights: Komm: %04i@\n \tT:%f\n \tL:%f\n \tH:%f\n \tB:%f \n',...
                 Vehicle_dist.D1_KommNr(komm),sum(VD(komm,:)),...
                 sum(VD(komm,LightVehiclesIdx)),...
                 sum(VD(komm,HeavyVehiclesIdx)),...
                 sum(VD(komm,BusesVehiclesIdx)))
+        else
+             fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
+             if rem(komm,15)==0;fprintf('\n'); end
         end
+        
         if abs(sum(VD(komm,:))-3)>1e-5
             VD(komm,LightVehiclesIdx) = VD(komm,LightVehiclesIdx)/sum(VD(komm,LightVehiclesIdx));
             VD(komm,HeavyVehiclesIdx) = VD(komm,HeavyVehiclesIdx)/sum(VD(komm,HeavyVehiclesIdx));
@@ -46,21 +50,31 @@ for com = 1:length(comps)
         
         for i= 1:height(TFout)
             EFs = VD(komm,:).*table2array(TFout(i,idef));
-            % rows2vars(TFout(1,idef))
             EFLight(i,1) = nansum(EFs(LightVehiclesIdx));
             EFHeavy(i,1) = nansum(EFs(HeavyVehiclesIdx));
             EFBuses(i,1) = nansum(EFs(BusesVehiclesIdx));
         end
-        
         Trout.Light = EFLight;
         Trout.Heavy = EFHeavy;
-        Trout.Buses = EFBuses;
-        
+        Trout.Buses = EFBuses;    
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Light'))) = {sprintf('EF_Light_%04i',Vehicle_dist.D1_KommNr(komm))};
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Heavy'))) = {sprintf('EF_Heavy_%04i',Vehicle_dist.D1_KommNr(komm))};
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Buses'))) = {sprintf('EF_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
     end
-    writetable(Trout,'OnRoadEF_RoadClasses.xlsx','Sheet',sprintf('%s_%i',char(comps(com)),Tyear))
+    
+    switch char(comps(com))
+        case 'CO2'
+        fprintf('### ADD CALL TO: Emission_Factor_mix_in_biofuels()\n')
+        
+        
+    end
+
+    ofile = 'OnRoadEF_RoadClasses.xlsx';
+    
+    OnRoadEF_RoadClasses = Trout;
+    save('OnRoadEF_RoadClasses.mat','OnRoadEF_RoadClasses')
+    writetable(Trout,ofile,'Sheet',sprintf('%s_%i',char(comps(com)),Tyear))
+    fprintf('%s--- >\n',char(comps(com)))
 end
 
 end

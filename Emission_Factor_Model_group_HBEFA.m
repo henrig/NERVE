@@ -32,13 +32,12 @@ if ~ismember(Vehicle_source,{'SSB'})
 end
 
 
-
-
-fprintf('\tin Emission_Factor_Model_group_HBEFA\n')
+fprintf('in Emission_Factor_Model_group_HBEFA *\n')
 fprintf('---   Grouping Vehicles according to ---\n---   Model SSB HBEFA merger specifications ---\n%s \n',SSB_Vehicle_dist)
 
-T = readtable(SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
+T  = readtable(SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
 Tm = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+fprintf('read Sheet : %s and Sheet %s\n','HBEFA778toMODEL','MODEL')
 
 % ModelNumber HBEFA_Weight    Uniform_Weight
 modelN = unique(T.ModelNumber);
@@ -49,7 +48,6 @@ fprintf('Found %i Model Vehicles \n',length(modelN))
 
 % Loop all components (comps) to do conversion for
 for com =1:length(comps)
-    
     fprintf('<--- \nSpec| %s\n',char(comps(com)))
     iEFfile = sprintf('%s/EFA_matrix41_RAW_%s.mat',tfold,char(comps(com)));
     oEFfile = sprintf('%s/EFA_Table_MODEL_%s',tfold,char(comps(com)));
@@ -85,11 +83,11 @@ for com =1:length(comps)
             fprintf('MODEL Vehicle: %3i %-42s Found #%i EF',modelN(mod),char(Tm.Name(modelN(mod))),uef)
             Tout = table;
             k = 1;
-            for roa = 1:size(EFA,2)
-                for spd = 1:size(EFA,3)
-                    for dec = 1:size(EFA,4)
-                        for cog = 1:size(EFA,5)
-                            for urb = 1:size(EFA,6)
+            for roa = 1:size(EF_AVG,2)
+                for spd = 1:size(EF_AVG,3)
+                    for dec = 1:size(EF_AVG,4)
+                        for cog = 1:size(EF_AVG,5)
+                            for urb = 1:size(EF_AVG,6)
                                 Trout = table;
                                 if ~isnan(EFsub(1,roa,spd,dec,cog,urb))
                                     Trout.Name        = {sprintf('%s/%s-%i/%i%%/%s',char(roads.RoadEnv(urb)),char(roads.RoadType(roa)),roads.RoadSpeeds(spd),roads.RoadGradient(dec),char(roads.Congestion(cog)))};
@@ -165,7 +163,7 @@ for com =1:length(comps)
             % Concatonate only the column of the new vehicle data if the
             % align.
             [a,b,c] = intersect(TFout.Name,Tout.Name);
-            addCol    = find(ismember(Tout.Properties.VariableNames,Tm.Name(modelN(mod))));
+            addCol  = find(ismember(Tout.Properties.VariableNames,Tm.Name(modelN(mod))));
             
             % Not 100% robust test!!!!?
             if length(b)==length(c)

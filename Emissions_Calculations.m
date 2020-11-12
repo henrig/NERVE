@@ -30,6 +30,7 @@ end
 
 if ismember(Vehicle_source,{'SSB'})
     Emission_Factors_OnRoadAllCond()
+    Emission_Factors_Road_DrivingDistance_IN_Municipalities()
     [Sn] = Emissions_Calculations_SSB();
     return
 end

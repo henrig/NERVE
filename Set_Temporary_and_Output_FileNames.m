@@ -18,5 +18,6 @@ end
 ofiles.RLShape  = sprintf('%sTraffic_Emissions_%4i',ofold,Tyear);
 ofiles.SSB_Stat = sprintf('%sNational_SSB_Vehicle_Number_Distribution.xlsx',ofold); 
 
+ofiles.MatlabOutput = sprintf('%sOutput.mat',ofold);
 
 end

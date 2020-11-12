@@ -122,6 +122,9 @@ RLinks = Roads_Add_HBEFA_Parameters(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Congestion_Parameters(RLinks);
 %--------------------------------------------------------------------------
+if use_temporary_files
+    Save_shape(RLinks,tfiles.RL)
+end
 RLinks = Roads_Scale_Traffic_to_Year(RLinks);
 %--------------------------------------------------------------------------
 if use_temporary_files

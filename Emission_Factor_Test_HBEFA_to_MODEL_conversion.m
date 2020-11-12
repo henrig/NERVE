@@ -15,7 +15,10 @@
 %--------------------------------------------------------------------------
 function Emission_Factor_Test_HBEFA_to_MODEL_conversion(com,ConVfile)
 global EFA EF_AVG comps roads
-fprintf('\tin Emission_Factor_Test_HBEFA_to_MODEL_conversion\n')
+
+fprintf('in Emission_Factor_Test_HBEFA_to_MODEL_conversion * \n')
+
+
 Traff = table;
 k = 1;
 for roa = 1:size(EF_AVG,2)
