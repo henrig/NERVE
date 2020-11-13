@@ -14,7 +14,7 @@
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 function wRLinks = Roads_Find_StartMuncipalityFraction(RLinks)
-global  Komm_shape
+global  Komm_shape 
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Roads_Find_StartMuncipalityFraction   *\n')
 fprintf('---------------------------------------------------------------\n')

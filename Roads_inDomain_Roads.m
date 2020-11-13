@@ -14,6 +14,7 @@
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 function [fra] = Roads_inDomain_Roads(S,E)
+global debug_mode
 % S = t_RLinks(i)
 % E = Ks(pla)
 fra = NaN;
@@ -39,7 +40,9 @@ for s=1:length(S)
         if length(S(s).X) < 500
             [xi,yi] = polyxpoly(S(s).X,S(s).Y,E.X,E.Y);
         else
+            if debug_mode
             warning(sprintf('Straightened Road with %i subnodes',length(S(s).X)))
+            end
             [xi,yi] = polyxpoly(S(s).X([1,end-1]),S(s).Y([1,end-1]),E.X,E.Y);
         end
 
@@ -83,8 +86,9 @@ for s=1:length(S)
          if fra >1.01
             fra = nd/(S(s).DISTANCE*1000);
          end             
-
+        if debug_mode
         fprintf('%04.4f / %04.4f (%04.1f%%) in StartGrid \n',DST(s)*fra,DST(s),fra*100)
+        end
         clear xi yi tx ty xt yt
     end
     clear in

@@ -108,7 +108,6 @@ else
     end
     fprintf('\n')
 end
-
 %--------------------------------------------------------------------------
 rRLinks = Roads_clean_Input(RLinks);
 %--------------------------------------------------------------------------
@@ -135,10 +134,11 @@ RLinks = Roads_Congestion_Parameters(RLinks);
 if use_temporary_files
     Save_shape(RLinks,tfiles.CleanRoads)
 end
-RLinks = Roads_Scale_Traffic_to_Year(RLinks);
-RLinks = Roads_Clean_Annual(RLinks);
+
+CLinks = Roads_Scale_Traffic_to_Year(RLinks);
+CLinks = Roads_Clean_Annual(CLinks);
 %--------------------------------------------------------------------------
 if use_temporary_files
-    Save_shape(RLinks,tfiles.RL)
+    Save_shape(CLinks,tfiles.RL)
 end
 end
