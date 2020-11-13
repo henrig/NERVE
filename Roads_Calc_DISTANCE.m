@@ -14,7 +14,9 @@
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 function [Sn] = Roads_Calc_DISTANCE(RLinks)
-fprintf('in Roads_Calc_DISTANCE.\n')
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Roads_Calc_DISTANCE   *\n')
+fprintf('---------------------------------------------------------------\n')
 
 if isfield(RLinks,'DISTANCE')
     old_dst = extractfield(RLinks,'DISTANCE');
@@ -51,7 +53,9 @@ for i=1:length(RLinks)
     end
     if ((old_dst(i)-dst(i))/dst(i)> 0.5 || (old_dst(i)-dst(i))/dst(i)< -0.5) && ~isnan(mean_length)
        k = k+1;
+       if debug_mode
        fprintf('i = %6i Old distance / New distance / Diff %fkm/%fkm/%f%% --- Segments %i \n',i,old_dst(i),dst(i),100*(old_dst(i)-dst(i))/dst(i),length(xt)-2)
+       end
     end
 end
 

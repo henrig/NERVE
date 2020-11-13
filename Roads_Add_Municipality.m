@@ -30,7 +30,10 @@ function [Sn] = Roads_Add_Municipality(RLinks)
 % Kjeller NILU
 %-------------------------------------------------------------------------
 global Komm_shape
-fprintf('\tin Roads_Add_Municipality   *\n')
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Roads_Add_Municipality   *\n')
+fprintf('---------------------------------------------------------------\n')
+
 fprintf('Adding kommune field based on geo file: \n%s\n',Komm_shape)
 Ks      = shaperead(Komm_shape);
 

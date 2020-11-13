@@ -24,9 +24,11 @@ function [Sn] = Roads_Scale_Traffic_to_Year(RLinks)
 
 global Ryear Tyear Light_traff_years Heavy_traff_years Buses_traff_years
 global Listfields
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Scale_Road_Traffic_Year  *\n')
+fprintf('---------------------------------------------------------------\n')
 
 
-fprintf('in Scale_Road_Traffic_Year  \n')
 
 
 fprintf('To scale Light Traffic from %i to %i \n',Ryear,Tyear)
@@ -60,7 +62,7 @@ fB       = find(ismember(fldList,sprintf('x%i',Ryear)));
 fyB      = find(ismember(fldList,sprintf('x%i',Tyear)));
 Scale.ToYearB = table2array(TB(:,fyB))./table2array(TB(:,fB));
 
-fprintf('Flat Average Scale\nFrom %i to %i:\n',Ryear,Tyear)
+fprintf('National Average Scaling :\nFrom %i to %i:\n',Ryear,Tyear)
 fprintf('Light=%4.1f%%\n',100*(mean(Scale.ToYearL)-1))
 fprintf('Heavy=%4.1f%%\n',100*(mean(Scale.ToYearH)-1))
 fprintf('Buses=%4.1f%%\n',100*(mean(Scale.ToYearB)-1))
@@ -109,19 +111,4 @@ Tlink.Properties.VariableNames(heavy_adt) = {sprintf('H_ADT%04i',Tyear)};
 Tlink.Properties.VariableNames(bus_adt)   = {sprintf('B_ADT%04i',Tyear)};
 
 Sn = table2struct(Tlink);
-
-% clear f
-% for i=1:length(Listfields)
-%    f(i)  = find(ismember(Tlink.Properties.VariableNames,Listfields(i)));
-% end
-% 
-% light_adt = find(ismember(Tlink.Properties.VariableNames,'L_ADT'));
-% heavy_adt = find(ismember(Tlink.Properties.VariableNames,'H_ADT'));
-% bus_adt   = find(ismember(Tlink.Properties.VariableNames,'B_ADT'));
-% 
-% Tlink.Properties.VariableNames(light_adt) = {sprintf('L_ADT%04i',Tyear)};
-% Tlink.Properties.VariableNames(heavy_adt) = {sprintf('H_ADT%04i',Tyear)};
-% Tlink.Properties.VariableNames(bus_adt)   = {sprintf('B_ADT%04i',Tyear)};
-% 
-% Sn = table2struct(Tlink(:,f));
 end

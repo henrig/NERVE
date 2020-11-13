@@ -14,6 +14,9 @@
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 function [Sn] = Roads_Calc_HBEFA_Slope(RLinks)
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Roads_Calc_HBEFA_Slope   *\n')
+fprintf('---------------------------------------------------------------\n')
     % Convert Precentage into HBEAF interpretable 0,2,4,6 pct slopes
     st = min(abs(round(50*extractfield(RLinks,'STIGNING_P'))*2),6);
     T = struct2table(RLinks);

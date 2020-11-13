@@ -50,6 +50,15 @@ global traffile Listfields Inputfields
 
 fprintf('in PreProcess_Input_Traffic.\n')
 
+% List of input fields used
+Inputfields = [{'Geometry'},{'X'},{'Y'},{'KOLL_ADT'},{'LETTE_BILE' },...
+    {'GODS_ADT'},{'SUM_ADT'},{'FM_TIME'},{'KO_MORGEN'},{'KO_ETTERM'},...
+    {'FM_SPEED'},{'SHAPE_LENG'},{'VK'},{'STIGNING_P'},{'SPEED'},{'HP_ID'},{'LANES'},{'DEKKEBREDD'}];
+
+% List of output fields a finished file has:
+Listfields = [{'Geometry'},{'X'},{'Y'},{'BoundingBox'},{'DISTANCE'},{'KOMMS'},{'KOMME'},{'KOMM'},{'SPEED'},{'SLOPE'},...
+    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'CAPACITY'},{'N_LANES'},{'IDO'}];
+
 if use_temporary_files
     try
         % First do tests if there is a temporary file saved:
@@ -57,17 +66,21 @@ if use_temporary_files
         RLinks = shaperead(tfiles.RL);
         fprintf('Found Pre-Processed file:\n %s \n',tfiles.RL)
         fields = fieldnames(RLinks);
+        fprintf('Road Links found %i\n',length(RLinks))
         fprintf('Fields:\n')
         for i=1:length(fields)
             fprintf('%s\n',char(fields(i)))
         end
         return
     catch
-        fprintf('### Temporary file Scaled to Year %i NOT found ###\n',Tyear)
+        fprintf('### Temporary file Scaled to Year %i NOT found\n',Tyear)
         try
             RLinks = shaperead(tfiles.CleanRoads);
+            fprintf('Temporary CLEANED file found \n')
             RLinks = Roads_Scale_Traffic_to_Year(RLinks);
-            fprintf('### Temporary file found ###\n',Tyear)
+            RLinks = Roads_Clean_Annual(RLinks);
+            Save_shape(RLinks,tfiles.RL)
+
             return
         end
         prj    = read_projection(traffile);
@@ -96,33 +109,22 @@ else
     fprintf('\n')
 end
 
-
-% List of input fields used
-Inputfields = [{'Geometry'},{'X'},{'Y'},{'KOLL_ADT'},{'LETTE_BILE' },...
-    {'GODS_ADT'},{'SUM_ADT'},{'FM_TIME'},{'KO_MORGEN'},{'KO_ETTERM'},...
-    {'FM_SPEED'},{'SHAPE_LENG'},{'VK'},{'STIGNING_P'},{'SPEED'},{'HP_ID'},{'LANES'}];
-
-% List of output fields a finished file has:
-Listfields = [{'Geometry'},{'X'},{'Y'},{'BoundingBox'},{'DISTANCE'},{'KOMMS'},{'KOMME'},{'KOMM'},{'SPEED'},{'SLOPE'},...
-    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'CAPACITY'},{'N_LANES'},{'L_ADT'},{'H_ADT'},{'B_ADT'},{'IDO'}];
-
-
 %--------------------------------------------------------------------------
-RLinks = Roads_clean_Input(RLinks);
+rRLinks = Roads_clean_Input(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Remove_NoTrafficRoads(RLinks);
 %--------------------------------------------------------------------------
+RLinks = Roads_Congestion_Parameters(RLinks);
+%--------------------------------------------------------------------------
 RLinks = Roads_Calc_DISTANCE(RLinks);
+%--------------------------------------------------------------------------
+RLinks = Roads_Calc_HBEFA_Slope(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Add_Municipality(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Find_StartMuncipalityFraction(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Fix_Roadfields(RLinks);
-%--------------------------------------------------------------------------
-RLinks = Roads_Congestion_Parameters(RLinks);
-%--------------------------------------------------------------------------
-RLinks = Roads_Calc_HBEFA_Slope(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Add_Urban(RLinks);
 %--------------------------------------------------------------------------
@@ -134,6 +136,7 @@ if use_temporary_files
     Save_shape(RLinks,tfiles.CleanRoads)
 end
 RLinks = Roads_Scale_Traffic_to_Year(RLinks);
+RLinks = Roads_Clean_Annual(RLinks);
 %--------------------------------------------------------------------------
 if use_temporary_files
     Save_shape(RLinks,tfiles.RL)
