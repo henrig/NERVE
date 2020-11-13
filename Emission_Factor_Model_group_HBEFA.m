@@ -19,24 +19,21 @@ function Emission_Factor_Model_group_HBEFA()
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold comps SSB_Vehicle_dist Vehicle_source debug_mode
-global EFA EF_AVG roads Vehicle_weight
-
-
-% global rfid
-% global exchfile  debug_mode  SSB_sheet_col HBEFA_temp_Matfile
-% global NERVE_EF_file text_div
+global tfold comps Vehicle_source debug_mode
+global EFA EF_AVG roads Vehicle_weight ofiles input
 
 if ~ismember(Vehicle_source,{'SSB'})
     return
 end
-
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Emission_Factor_Model_group_HBEFA    *\n')
+fprintf('---------------------------------------------------------------\n')
 
 fprintf('in Emission_Factor_Model_group_HBEFA *\n')
-fprintf('---   Grouping Vehicles according to ---\n---   Model SSB HBEFA merger specifications ---\n%s \n',SSB_Vehicle_dist)
+fprintf('---   Grouping Vehicles according to ---\n---   Model SSB HBEFA merger specifications ---\n%s \n',input.files.SSB_Vehicle_dist)
 
-T  = readtable(SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
-Tm = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+T  = readtable(input.files.SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
+Tm = readtable(input.files.SSB_Vehicle_dist,'Sheet','MODEL');
 fprintf('read Sheet : %s and Sheet %s\n','HBEFA778toMODEL','MODEL')
 
 % ModelNumber HBEFA_Weight    Uniform_Weight
@@ -179,7 +176,7 @@ for com =1:length(comps)
         switch char(comps(com))
             case 'CO2'
                 fprintf('### ADD CALL TO: Emission_Factor_mix_in_biofuels()\n')
-                TFout = Emissions_Factor_Mix_in_biofuels(TFout)
+                TFout = Emissions_Factor_Mix_in_biofuels(TFout);
         end
     end
     %__________________________________________________________________________
@@ -235,100 +232,10 @@ for com =1:length(comps)
             save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NH3','roads','-append');
     end
     
-    
-    writetable(TFout,'modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight) )
+   
+    writetable(TFout,'modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight))
     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
     
 end
 
-% OLD METHOD
-% for com =1:length(comps)
-%     fprintf('<--- \nSpec| %s\n',char(comps(com)))
-%     iEFfile = sprintf('%s/EFA_matrix41_RAW_%s',tfold,char(comps(com)));
-%     oEFfile = sprintf('%s/EFA_matrix41_MODEL_%s',tfold,char(comps(com)));
-%     load(iEFfile);
-%     D = size(EF_AVG);
-%     fprintf('EF_AVG -- Dimensions\n')
-%     for i=1:length(D)
-%         fprintf('EF_AVG D%i  : %i\n',i,D(i));
-%     end
-%
-%     Defines the EFA
-%     EFA = nan(length(modelN),size(EF_AVG,2),size(EF_AVG,3),size(EF_AVG,4),size(EF_AVG,5),size(EF_AVG,6));
-%     for mod = 1:length(modelN)
-%         Tsub  = T(T.ModelNumber==modelN(mod),:);
-%
-%         Make vehicles with HBEFA weight
-%         EFsub = EF_AVG(Tsub.HBEFA_Num,:,:,:,:,:);
-%
-%         switch Vehicle_weight
-%
-%             case 'Uniform'
-%                 Make vehicles with Uniform weight
-%                 Wu = sum(Tsub.Uniform_Weight);
-%                 if abs(Wu-1)>1e-5
-%                     fprintf('### error Model Vehicle Weight does not add to 1 but %d!\n',Wu)
-%                     Tsub
-%                 end
-%                 for roa = 1:size(EFA,2)
-%                     for spd = 1:size(EFA,3)
-%                         for dec = 1:size(EFA,4)
-%                             for cog = 1:size(EFA,5)
-%                                 for urb = 1:size(EFA,6)
-%                                     TW = 0;
-%                                     has_EF =  0;
-%                                     for  i =1:size(EFsub,1)
-%                                         if ~isnan(EFsub(i,roa,spd,dec,cog,urb))
-%                                             EFA(modelN(mod),roa,spd,dec,cog,urb)= EFA(modelN(mod),roa,spd,dec,cog,urb) + ...
-%                                                 EFsub(i,roa,spd,dec,cog,urb)*Tsub.Uniform_Weight(i);
-%                                             TW = TW + Tsub.Uniform_Weight(i);
-%                                             has_EF =  1;
-%                                         end
-%
-%                                     end
-%                                     if has_EF>0;
-%                                         fprintf('i=%i;modelN(mod)=%i;roa=%i;spd=%i;dec=%i;cog=%i;urb=%i;  TW = %f\n',i,modelN(mod),roa,spd,dec,cog,urb,TW)
-%                                         pause;
-%                                     end
-%                                     if abs(TW-1)> 1e-3 && has_EF &&  ~isnan(EFA(modelN(mod),roa,spd,dec,cog,urb))
-%                                         fprintf('modelN(mod)=%i;roa=%i;spd=%i;dec=%i;cog=%i;urb=%i;  TW = %f\n',modelN(mod),roa,spd,dec,cog,urb,TW)
-%                                         EFA(modelN(mod),roa,spd,dec,cog,urb) = EFA(modelN(mod),roa,spd,dec,cog,urb)/TW;
-%                                     end
-%                                 end
-%                             end
-%                         end
-%                     end
-%                 end
-%
-%             case 'HBEFA'
-%                 Wh = sum(Tsub.HBEFA_Weight);
-%                 if abs(Wh-1)>1e-5
-%                     fprintf('### error Model Vehicle Weight does not add to 1 but %d\n',Wh)
-%                     Tsub
-%                 end
-%             case 'NERVE'
-%                 Wn = sum(Tsub.NERVE_Weight);
-%                 if abs(Wn-1)>1e-5
-%                     fprintf('### error Model Vehicle Weight does not add to 1!\n')
-%                     Tsub
-%                 end
-%
-%         end % switch
-%
-%
-%         fprintf('#%i EF No NAN EFs found: %i\n',modelN(mod),length(find(~isnan(EFA(modelN(mod),:,:,:,:,:,:)))))
-%
-%
-%
-%     end % for mod
-%
-%     Emission_Factor_Test_HBEFA_to_MODEL_conversion(com,ConVfile)
-%
-%
-%     save(oEFfile,'EFA','T','roads');
-%     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
-%
-% end % comps
-
 end
-

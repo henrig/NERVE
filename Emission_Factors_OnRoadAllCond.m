@@ -53,7 +53,7 @@ for com = 1:length(comps)
                 sum(VD(komm,BusesVehiclesIdx)))
         else
             % fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
-            if rem(komm,15)==0;fprintf('@%i/%i \n',komm,length(Vehicle_dist.D1_KommNr)); end
+            if rem(komm,15)==0;fprintf('@%03i/%3i \n',komm,length(Vehicle_dist.D1_KommNr)); end
         end
         
         if abs(sum(VD(komm,:))-3)>1e-5

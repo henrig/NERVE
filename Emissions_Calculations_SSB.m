@@ -21,6 +21,9 @@ function [Sn] = Emissions_Calculations_SSB()
 %--------------------------------------------------------------------------
 global tfold Tyear SSB_Vehicle_dist comps RLinks Vehicle_dist Vehicle_weight
 global debug_mode ofiles
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Emissions_Calculations_SSB    *\n')
+fprintf('---------------------------------------------------------------\n')
 
 %--------------------------------------------------------------
 % ROAD LINK EMISSIONS Calculations
@@ -86,6 +89,9 @@ RU      = extractfield(RLinks,'RUSH_DELAY');
 LW  = 1e-6*sum(L.*LEN)*dayInYear;
 HW  = 1e-6*sum(H.*LEN)*dayInYear;
 BW  = 1e-6*sum(B.*LEN)*dayInYear;
+LTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,LightVehiclesIdx)));
+HTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,HeavyVehiclesIdx)));
+BTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,BusesVehiclesIdx)));
 
 % Classification of rush hour traffic. 0-4 (4 is congested)
 ru                 = zeros(size(RU));
@@ -97,16 +103,22 @@ ru(RU>15)          = 4;
 IDO     = extractfield(RLinks,'IDO');
 KOMS    = extractfield(RLinks,'KOMMS');
 
-% All road links emissions Light / Heavy / Bus
-EMISS_L = zeros(size(RLinks));
-EMISS_H = zeros(size(RLinks));
-EMISS_B = zeros(size(RLinks));
-Link_emission_factor= zeros(size(RLinks));
-
 for com = 1:length(comps)
+    % All road links emissions Light / Heavy / Bus
+    EMISS_L = zeros(size(RLinks));
+    EMISS_H = zeros(size(RLinks));
+    EMISS_B = zeros(size(RLinks));
+    Link_emission_factor= zeros(size(RLinks));
     fprintf('<--- %s ---\n',char(comps(com)))
     fprintf('Loading large file\n...')
-    TEF = readtable('OnRoadEF_RoadClasses.xlsx','Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);
+    %%%%%%%%%%%%%%%%%%%%%%%
+    % try
+    %    TEF = load(ofiles.MatlabOutput,sprintf('OnRoadEF_RoadClasses_%i',char(coms(com))))
+    % catch
+    %    fprintf('reading excel file\n') 
+         TEF = readtable('OnRoadEF_RoadClasses.xlsx','Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);
+    % end
+    %%%%%%%%%%%%%%%%%%%%%%
     fprintf('Loaded.\n')
     tef = TEF.Name;
     for r =1:length(L)
@@ -167,9 +179,6 @@ for com = 1:length(comps)
     fprintf('---- Busser  %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(EMISS_B),char(comps(com)),100*nansum(EMISS_B)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Totalt  %11.1f   (1000)Ton %s \n\n',1e-9*nansum(EMISS_B+EMISS_H+EMISS_L),char(comps(com)))
     
-    LTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,LightVehiclesIdx)));
-    HTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,HeavyVehiclesIdx)));
-    BTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,BusesVehiclesIdx)));
     
     fprintf('     Light Traffic L=%7.1f g/Km\n',1e-6*sum(EMISS_L)/LW)
     fprintf('     Heavy Traffic H=%7.1f g/Km\n',1e-6*sum(EMISS_H)/HW)

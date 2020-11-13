@@ -22,8 +22,12 @@ fprintf('---------------------------------------------------------------\n')
 
 
 % OPT TODO: ADD a test to check for data from municipality and year
-Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV();
 
+if input.options.use_temporary_files && exist(tfiles.CarPark,'file')
+	Vehicle_data = load(tfiles.CarPark)
+else
+	Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV();
+end
 % Extract only the traffic from the traffic year and reshape euro and SSB
 % individual car type to one class. 
 idx    = find(Vehicle_data.D1_yrs == Tyear);
