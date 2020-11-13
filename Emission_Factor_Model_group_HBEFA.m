@@ -174,24 +174,71 @@ for com =1:length(comps)
         end
         
     end
-    
+    %__________________________________________________________________________
+    if input.options.Subtract_bio_from_CO2
+        switch char(comps(com))
+            case 'CO2'
+                fprintf('### ADD CALL TO: Emission_Factor_mix_in_biofuels()\n')
+                TFout = Emissions_Factor_Mix_in_biofuels(TFout)
+        end
+    end
+    %__________________________________________________________________________
     
     switch char(comps(com))
-        case 'CO2'
-            MunicpalHBEFA_RoadsEF_ = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_','roads','-append');
         case 'FC'
+            MunicpalHBEFA_RoadsEF_FC = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_FC','roads','-append');
+        case 'FC_MJ'
+            MunicpalHBEFA_RoadsEF_FC_MJ = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_FC_MJ','roads','-append');
+        case 'CH4'
+            MunicpalHBEFA_RoadsEF_CH4 = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CH4','roads','-append');
+        case 'BC'
+            MunicpalHBEFA_RoadsEF_BC = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_BC','roads','-append');
+        case 'PM'
+            MunicpalHBEFA_RoadsEF_PM = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_PM','roads','-append');
+        case 'HC'
+            MunicpalHBEFA_RoadsEF_HC = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_HC','roads','-append');
+        case 'CO'
+            MunicpalHBEFA_RoadsEF_CO = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CO','roads','-append');
         case 'NOx'
+            MunicpalHBEFA_RoadsEF_NOx = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NOx','roads','-append');
+        case 'Be'
+            MunicpalHBEFA_RoadsEF_Be = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_Be','roads','-append');
+        case 'NMHC'
+            MunicpalHBEFA_RoadsEF_NMHC = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NMHC','roads','-append');
+        case 'NO2'
+            MunicpalHBEFA_RoadsEF_NO2 = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NO2','roads','-append');
+        case 'NO'
+            MunicpalHBEFA_RoadsEF_NO = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NO','roads','-append');
+        case 'PN'
+            MunicpalHBEFA_RoadsEF_PN = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_PN','roads','-append');
         case 'CO2'
-        case 'CO2'
-        case 'CO2'
-    
+            MunicpalHBEFA_RoadsEF_CO2 = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CO2','roads','-append');
+        case 'N2O'
+            MunicpalHBEFA_RoadsEF_N2O = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_N2O','roads','-append');
+        case 'NH3'
+            MunicpalHBEFA_RoadsEF_NH3 = TFout;
+            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NH3','roads','-append');
     end
     
     
     writetable(TFout,'modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight) )
     fprintf('Saved a temp-file for Emission Factors Model:\n%s\n',oEFfile)
-
+    
 end
 
 % OLD METHOD

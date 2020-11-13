@@ -17,7 +17,7 @@ function [Vehicle_dist] = Vehicle_Distribution_per_Municipality_SSB()
 % Module for processing SSB DD. 
 global Tyear SSB_Vehicle_dist
 
-fprintf('\t in Vehicle_Distribution_per_Municipality_SSB\n')
+fprintf('in Vehicle_Distribution_per_Municipality_SSB *\n')
 
 
 % OPT TODO: ADD a test to check for data from municipality and year

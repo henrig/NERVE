@@ -45,21 +45,10 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 % 20.09.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global use_temporary_files tfiles
+global use_temporary_files tfiles Tyear
 global traffile Listfields Inputfields
 
 fprintf('in PreProcess_Input_Traffic.\n')
-
-% List of input fields used
-Inputfields = [{'Geometry'},{'X'},{'Y'},{'KOLL_ADT'},{'LETTE_BILE' },...
-    {'GODS_ADT'},{'SUM_ADT'},{'FM_TIME'},{'KO_MORGEN'},{'KO_ETTERM'},...
-    {'FM_SPEED'},{'SHAPE_LENG'},{'VK'},{'STIGNING_P'},{'SPEED'},{'HP_ID'},{'LANES'}];
-
-% List of output fields a finished file has:
-Listfields = [{'Geometry'},{'X'},{'Y'},{'BoundingBox'},{'DISTANCE'},{'KOMMS'},{'KOMME'},{'KOMM'},{'SPEED'},{'SLOPE'},...
-    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'CAPACITY'},{'N_LANES'},{'L_ADT'},{'H_ADT'},{'B_ADT'},{'IDO'}];
-
-
 
 if use_temporary_files
     try
@@ -74,7 +63,13 @@ if use_temporary_files
         end
         return
     catch
-        fprintf('### No temporary file found ###\n')
+        fprintf('### Temporary file Scaled to Year %i NOT found ###\n',Tyear)
+        try
+            RLinks = shaperead(tfiles.CleanRoads);
+            RLinks = Roads_Scale_Traffic_to_Year(RLinks);
+            fprintf('### Temporary file found ###\n',Tyear)
+            return
+        end
         prj    = read_projection(traffile);
         fprintf('Reading large file: \n\t %s  ...',traffile)
         RLinks = shaperead(traffile);
@@ -100,6 +95,18 @@ else
     end
     fprintf('\n')
 end
+
+
+% List of input fields used
+Inputfields = [{'Geometry'},{'X'},{'Y'},{'KOLL_ADT'},{'LETTE_BILE' },...
+    {'GODS_ADT'},{'SUM_ADT'},{'FM_TIME'},{'KO_MORGEN'},{'KO_ETTERM'},...
+    {'FM_SPEED'},{'SHAPE_LENG'},{'VK'},{'STIGNING_P'},{'SPEED'},{'HP_ID'},{'LANES'}];
+
+% List of output fields a finished file has:
+Listfields = [{'Geometry'},{'X'},{'Y'},{'BoundingBox'},{'DISTANCE'},{'KOMMS'},{'KOMME'},{'KOMM'},{'SPEED'},{'SLOPE'},...
+    {'URBAN'},{'RUSH_DELAY'},{'HBEFA_EQIV'},{'WIDTH'},{'CAPACITY'},{'N_LANES'},{'L_ADT'},{'H_ADT'},{'B_ADT'},{'IDO'}];
+
+
 %--------------------------------------------------------------------------
 RLinks = Roads_clean_Input(RLinks);
 %--------------------------------------------------------------------------
@@ -115,15 +122,16 @@ RLinks = Roads_Fix_Roadfields(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Congestion_Parameters(RLinks);
 %--------------------------------------------------------------------------
+RLinks = Roads_Calc_HBEFA_Slope(RLinks);
+%--------------------------------------------------------------------------
 RLinks = Roads_Add_Urban(RLinks);
-save('RLinks.mat','RLinks')
 %--------------------------------------------------------------------------
 RLinks = Roads_Add_HBEFA_Parameters(RLinks);
 %--------------------------------------------------------------------------
 RLinks = Roads_Congestion_Parameters(RLinks);
 %--------------------------------------------------------------------------
 if use_temporary_files
-    Save_shape(RLinks,tfiles.RL)
+    Save_shape(RLinks,tfiles.CleanRoads)
 end
 RLinks = Roads_Scale_Traffic_to_Year(RLinks);
 %--------------------------------------------------------------------------

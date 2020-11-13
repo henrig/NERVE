@@ -11,7 +11,6 @@ HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 
 
 T = readtable('modelHBEFA.xlsx','Sheet','Roads');
-
 file = sprintf('%s%s',tfold,'roads');
 fprintf('### Warning,using roads file not produced by NERVE model\n%s\n',file)
 load(file)

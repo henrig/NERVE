@@ -39,6 +39,6 @@ if ismember(Vehicle_source,{'Scenario'})
     fprintf('Using Costum-made file for:\nVehcile_distribution\n\n')
     [Vehicle_dist] = Vehcile_Distribution_National_Scenario();
 end
-
+save(ofiles.MatlabOutput,'Vehicle_dist','-append')
 end
 

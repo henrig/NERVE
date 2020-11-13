@@ -180,7 +180,6 @@ for com = 1:length(comps)
 end
 
 save(ofiles.MatlabOutput,'RLinks','-append')
-
-
+fprintf('Added RLinks to output\n')
 Sn     = RLinks;
 end

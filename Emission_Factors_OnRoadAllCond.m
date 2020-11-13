@@ -4,6 +4,7 @@ global debug_mode ofile
 %--------------------------------------------------------------
 % COMBINE Municipal VEHICLE DISTRIBUTION & EMISSION FACTORS
 %--------------------------------------------------------------
+fprintf('in Emission_Factors_OnRoadAllCond *\n')
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
 
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
@@ -31,8 +32,8 @@ for com = 1:length(comps)
                 sum(VD(komm,HeavyVehiclesIdx)),...
                 sum(VD(komm,BusesVehiclesIdx)))
         else
-             fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
-             if rem(komm,15)==0;fprintf('\n'); end
+            fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
+            if rem(komm,15)==0;fprintf('\n'); end
         end
         
         if abs(sum(VD(komm,:))-3)>1e-5
@@ -56,23 +57,66 @@ for com = 1:length(comps)
         end
         Trout.Light = EFLight;
         Trout.Heavy = EFHeavy;
-        Trout.Buses = EFBuses;    
+        Trout.Buses = EFBuses;
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Light'))) = {sprintf('EF_Light_%04i',Vehicle_dist.D1_KommNr(komm))};
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Heavy'))) = {sprintf('EF_Heavy_%04i',Vehicle_dist.D1_KommNr(komm))};
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Buses'))) = {sprintf('EF_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
     end
     
+
+    
     switch char(comps(com))
+        case 'FC'
+            OnRoadEF_RoadClasses_FC = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC','-append');
+        case 'FC_MJ'
+            OnRoadEF_RoadClasses_FC_MJ = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC_MJ','-append');
+        case 'CH4'
+            OnRoadEF_RoadClasses_CH4 = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CH4','-append');
+        case 'BC'
+            OnRoadEF_RoadClasses_BC = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_BC','-append');
+        case 'PM'
+            OnRoadEF_RoadClasses_PM = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PM','-append');
+        case 'HC'
+            OnRoadEF_RoadClasses_HC = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_HC','-append');
+        case 'CO'
+            OnRoadEF_RoadClasses_CO = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO','-append');
+        case 'NOx'
+            OnRoadEF_RoadClasses_NOx = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NOx','-append');
+        case 'Be'
+            OnRoadEF_RoadClasses_Be = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_Be','-append');
+        case 'NMHC'
+            OnRoadEF_RoadClasses_NMHC = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NMHC','-append');
+        case 'NO2'
+            OnRoadEF_RoadClasses_NO2 = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO2','-append');
+        case 'NO'
+            OnRoadEF_RoadClasses_NO = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO','-append');
+        case 'PN'
+            OnRoadEF_RoadClasses_PN = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PN','-append');
         case 'CO2'
-        fprintf('### ADD CALL TO: Emission_Factor_mix_in_biofuels()\n')
-        
-        
+            OnRoadEF_RoadClasses_CO2 = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO2','-append');
+        case 'N2O'
+            OnRoadEF_RoadClasses_N2O = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_N2O','-append');
+        case 'NH3'
+            OnRoadEF_RoadClasses_NH3 = Trout;
+            save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NH3','-append');
     end
 
     ofile = 'OnRoadEF_RoadClasses.xlsx';
-    
-    OnRoadEF_RoadClasses = Trout;
-    save(ofile.MatlabOutput,'OnRoadEF_RoadClasses','-append')
     writetable(Trout,ofile,'Sheet',sprintf('%s_%i',char(comps(com)),Tyear))
     fprintf('%s--- >\n',char(comps(com)))
 end
