@@ -17,9 +17,11 @@ function [Vehicle_dist] = PreProcess_Vehicle_Distribution()
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-global Vehicle_source 
+global Vehicle_source ofiles
+fprintf('---------------------------------------------------------------\n')
+fprintf('in PreProcess_Vehicle_Distribution\n')
+fprintf('---------------------------------------------------------------\n')
 
-fprintf('\t in PreProcess_Vehicle_Distribution\n')
 Vehicle_dist=[];
 
 if ismember(Vehicle_source,{'SSB'})

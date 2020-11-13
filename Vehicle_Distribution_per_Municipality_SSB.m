@@ -16,8 +16,9 @@
 function [Vehicle_dist] = Vehicle_Distribution_per_Municipality_SSB()
 % Module for processing SSB DD. 
 global Tyear SSB_Vehicle_dist
-
+fprintf('---------------------------------------------------------------\n')
 fprintf('in Vehicle_Distribution_per_Municipality_SSB *\n')
+fprintf('---------------------------------------------------------------\n')
 
 
 % OPT TODO: ADD a test to check for data from municipality and year
@@ -89,6 +90,7 @@ for i=1:size(TrafficIN)
 end
 
 Vehicle_dist.Vdist         = modelVdistIN;
+Vehicle_dist.VdistFROM     = modelTDfrac;
 Vehicle_dist.modelNV       = modelNV;
 Vehicle_dist.modelTD       = modelTD;
 Vehicle_dist.D1_KommNr     = SSBkomm;
@@ -97,8 +99,6 @@ Vehicle_dist.D2_VehicleNum = T.ModelNumber;
 Vehicle_dist.TrafficIN     = TrafficIN;
 Vehicle_dist.TrafficFROM   = TrafficFROM;
 Vehicle_dist.D12_Traffic   = EXkmneNr;
-
-
 %--------------------------------------------------------------------------
 % Statistical output.
     Vehicle_Distribution_Statistical_output(Vehicle_data,T)

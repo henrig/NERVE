@@ -27,10 +27,6 @@ global Listfields
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Scale_Road_Traffic_Year  *\n')
 fprintf('---------------------------------------------------------------\n')
-
-
-
-
 fprintf('To scale Light Traffic from %i to %i \n',Ryear,Tyear)
 
 % Read the Light csv scaling file into table

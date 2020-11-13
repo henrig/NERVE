@@ -4,7 +4,6 @@ global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist ofiles
 
 
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
-
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
@@ -150,10 +149,7 @@ fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,
 fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
 fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
 
-
-
 writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
-
 DrivingDistances_per_RoadType = Tout;
 save(ofiles.MatlabOutput,'DrivingDistances_per_RoadType','-append')
 

@@ -1,22 +1,42 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function Emission_Factors_OnRoadAllCond()
 global tfold Tyear SSB_Vehicle_dist comps Vehicle_dist Vehicle_weight
-global debug_mode ofile
+global debug_mode ofiles use_temporary_files
 %--------------------------------------------------------------
 % COMBINE Municipal VEHICLE DISTRIBUTION & EMISSION FACTORS
+% This is an extremely slow loop
 %--------------------------------------------------------------
+fprintf('---------------------------------------------------------------\n')
 fprintf('in Emission_Factors_OnRoadAllCond *\n')
-TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+fprintf('---------------------------------------------------------------\n')
 
+ofile = 'OnRoadEF_RoadClasses.xlsx';
+
+TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 VD               = Vehicle_dist.Vdist;
-
 % Loop all components to be calculated:
 for com = 1:length(comps)
     % Load the component file with
     fprintf('<--- %s\n',char(comps(com)))
-    TFout = readtable('modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight),'PreserveVariableNames',1);
+    TFout   = readtable('modelHBEFA.xlsx','Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight),'PreserveVariableNames',1);
+    osheet  = sprintf('%s_%i',char(comps(com)),Tyear);
     
     for i= 1:height(TM)
         idef(i) = find(ismember(TFout.Properties.VariableNames,TM.Name(i)));
@@ -32,8 +52,8 @@ for com = 1:length(comps)
                 sum(VD(komm,HeavyVehiclesIdx)),...
                 sum(VD(komm,BusesVehiclesIdx)))
         else
-            fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
-            if rem(komm,15)==0;fprintf('\n'); end
+            % fprintf('Komm:%04i;',Vehicle_dist.D1_KommNr(komm))
+            if rem(komm,15)==0;fprintf('@%i/%i \n',komm,length(Vehicle_dist.D1_KommNr)); end
         end
         
         if abs(sum(VD(komm,:))-3)>1e-5
@@ -63,8 +83,8 @@ for com = 1:length(comps)
         Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Buses'))) = {sprintf('EF_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
     end
     
-
-    
+    % Use a switch for string as MatLab do not love variable names changes
+    % inside loops...
     switch char(comps(com))
         case 'FC'
             OnRoadEF_RoadClasses_FC = Trout;
@@ -117,7 +137,9 @@ for com = 1:length(comps)
     end
 
     ofile = 'OnRoadEF_RoadClasses.xlsx';
-    writetable(Trout,ofile,'Sheet',sprintf('%s_%i',char(comps(com)),Tyear))
+    osheet = sprintf('%s_%i',char(comps(com)),Tyear);
+    writetable(Trout,ofile,'Sheet',osheet)
+    fprintf('Wrote Sheet: %s \n to file; %s\n',osheet,ofile)
     fprintf('%s--- >\n',char(comps(com)))
 end
 

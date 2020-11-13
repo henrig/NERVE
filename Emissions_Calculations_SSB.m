@@ -82,6 +82,11 @@ DEC     = extractfield(RLinks,'SLOPE');                     % Verticality of Roa
 ENV     = extractfield(RLinks,'URBAN');                     % Urbanity of Road    (URB/RUR)
 RU      = extractfield(RLinks,'RUSH_DELAY');
 
+% Calculated Properties
+LW  = 1e-6*sum(L.*LEN)*dayInYear;
+HW  = 1e-6*sum(H.*LEN)*dayInYear;
+BW  = 1e-6*sum(B.*LEN)*dayInYear;
+
 % Classification of rush hour traffic. 0-4 (4 is congested)
 ru                 = zeros(size(RU));
 ru(RU<=0.1)        = 1;
@@ -138,7 +143,6 @@ for com = 1:length(comps)
         EMISS_H(r) = sum(Hmy(idx).*table2array(TEF(idx,Hef))');
         EMISS_B(r) = sum(Bmy(idx).*table2array(TEF(idx,Bef))');
         
-        
         % Calculate roadLink Emission Factor: (Not used as of now)
         Link_Light_emission_factor(r) = EMISS_L(r)/sum(Lmy(idx));
         Link_Heavy_emission_factor(r) = EMISS_H(r)/sum(Hmy(idx));
@@ -157,25 +161,23 @@ for com = 1:length(comps)
     RLinks = table2struct(TLinks);
     
     % Print some statistical output
-    fprintf('\n---- NORGE --- \n')
+    fprintf('\n---- NORGE --- %i\n',Tyear)
     fprintf('---- Lette   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*sum(EMISS_L),char(comps(com)),100*nansum(EMISS_L)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Tunge   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(EMISS_H),char(comps(com)),100*nansum(EMISS_H)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Busser  %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(EMISS_B),char(comps(com)),100*nansum(EMISS_B)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Totalt  %11.1f   (1000)Ton %s \n\n',1e-9*nansum(EMISS_B+EMISS_H+EMISS_L),char(comps(com)))
     
-    LW  = 1e-6*sum(L.*LEN)*dayInYear;
-    HW  = 1e-6*sum(H.*LEN)*dayInYear;
-    BW  = 1e-6*sum(B.*LEN)*dayInYear;
     LTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,LightVehiclesIdx)));
     HTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,HeavyVehiclesIdx)));
     BTD = 1e-6*sum(sum(Vehicle_dist.modelTD(:,BusesVehiclesIdx)));
     
-    fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,LTD,100*LW/LTD)
-    fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
-    fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
     fprintf('     Light Traffic L=%7.1f g/Km\n',1e-6*sum(EMISS_L)/LW)
     fprintf('     Heavy Traffic H=%7.1f g/Km\n',1e-6*sum(EMISS_H)/HW)
     fprintf('     Buses Traffic B=%7.1f g/Km\n',1e-6*sum(EMISS_B)/BW)
+    fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,LTD,100*LW/LTD)
+    fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
+    fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
+
     fprintf('--- %s --->\n',char(comps(com)))
 end
 

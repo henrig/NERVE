@@ -13,7 +13,7 @@
 % You should have received a copy of the GNU General Public License
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
-function wRLinks = Roads_Find_StartMuncipalityFraction(RLinks)
+function Sn = Roads_Find_StartMuncipalityFraction(RLinks)
 global  Komm_shape 
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Roads_Find_StartMuncipalityFraction   *\n')
@@ -79,7 +79,7 @@ KeepT.IDO(:) = 1;
 t_T.IDO(:)   = Fraction; 
 Tble = [KeepT;t_T];
 Tble = sortrows(Tble,{'KOMMS'});
-wRLinks = table2struct(Tble);
+Sn = table2struct(Tble);
 end
 
 % startkommune = extractfield(RLinks,'KOMMS');
