@@ -26,7 +26,7 @@ function Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV()
 %  78 nybiltype
 %   7 regaar
 
-global SSB_vehicle Kartverket use_temporary_files tfiles
+global SSB_vehicle Kartverket use_temporary_files tfiles input
 
 fprintf('\t in Vehicle_Distribution_Preprocess_SSB_DD_NV\n')
 
@@ -43,13 +43,12 @@ end
 nybiltype = 78;
 regaar    = 7;
 
-% import the SSB data 
-T = readtable(SSB_vehicle);
-
+% import the SSB data
+T = readtable(input.files.SSB_vehicle);
 
 % Read Kartverket data for kommunesammenslåing, two sheets
-k1 = readtable(Kartverket,'Sheet','Kartverket_kommuner_2020');
-k2 = readtable(Kartverket,'Sheet','Kommuneendring2000_2019');
+k1 = readtable(input.files.Kartverket,'Sheet','Kartverket_kommuner_2020');
+k2 = readtable(input.files.Kartverket,'Sheet','Kommuneendring2000_2019');
 
 % Define all the kommunenumbers that appear in the period
 kommuner         = k1.Kommunenr_2020;

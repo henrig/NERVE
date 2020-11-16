@@ -15,7 +15,7 @@
 %--------------------------------------------------------------------------
 function [Vehicle_dist] = Vehicle_Distribution_per_Municipality_SSB()
 % Module for processing SSB DD. 
-global Tyear SSB_Vehicle_dist
+global Tyear SSB_Vehicle_dist input tfiles
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Vehicle_Distribution_per_Municipality_SSB *\n')
 fprintf('---------------------------------------------------------------\n')

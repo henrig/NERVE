@@ -47,8 +47,9 @@ function [RLinks] = PreProcess_Roads_Input_Traffic()
 %--------------------------------------------------------------------------
 global use_temporary_files tfiles Tyear
 global traffile Listfields Inputfields
-
-fprintf('in PreProcess_Input_Traffic.\n')
+fprintf('---------------------------------------------------------------\n')
+fprintf('in PreProcess_Input_Traffic *\n')
+fprintf('---------------------------------------------------------------\n')
 
 % List of input fields used
 Inputfields = [{'Geometry'},{'X'},{'Y'},{'KOLL_ADT'},{'LETTE_BILE' },...
