@@ -14,11 +14,17 @@
 % along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 function Emission_Factors_Road_DrivingDistance_IN_Municipalities()
-global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist ofiles
+% function to statistically calculate the driving distance on different
+% types of roads 
 
+
+global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist ofiles
+global tfiles
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Emission_Factors_Road_DrivingDistance_IN_Municipalities    *\n')
 fprintf('---------------------------------------------------------------\n')
+
+
 
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
@@ -167,7 +173,23 @@ fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,
 fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
 
 writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
-DrivingDistances_per_RoadType = Tout;
-save(ofiles.MatlabOutput,'DrivingDistances_per_RoadType','-append')
 
+KDD.distNames  = Tout.Properties.VariableNames;
+KDD.traffSit   = Tout.Name;
+KDD.TraffSitID = Tout(:,2:7);
+idl = find(contains(Tout.Properties.VariableNames,'Light'));
+idh = find(contains(Tout.Properties.VariableNames,'Heavy'));
+idb = find(contains(Tout.Properties.VariableNames,'Buses'));
+KDD.TraffDataL  = table2array(Tout(:,idl));
+KDD.TraffDataH  = table2array(Tout(:,idl));
+KDD.TraffDataB  = table2array(Tout(:,idl));
+KDD.kommNamesL  = Tout.Properties.VariableNames(idl);
+KDD.kommNamesH  = Tout.Properties.VariableNames(idh);
+KDD.kommNamesB  = Tout.Properties.VariableNames(idb);
+KDD.Tyear  = Tyear;
+save(tfiles.DD_Municipal,'KDD')
+save(ofiles.MatlabOutput,'KDD','-append')
+
+% DrivingDistances_per_RoadType = Tout;
+% save(ofiles.MatlabOutput,'DrivingDistances_per_RoadType','-append')
 end

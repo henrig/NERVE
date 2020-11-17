@@ -46,8 +46,9 @@ input.files.traff_exchange_sh = traff_exchange_sh;
 input.files.SSB_Vehicle_dist  = SSB_Vehicle_dist; 
 input.files.Bio_mix_file      = Bio_mix_file;
 
-tfiles.EF      = sprintf('%sHEDGE_EF_%4i',tfold,Tyear);
-tfiles.CarPark = sprintf('%sSSB_CarPark_%4i',ofold,Tyear);
+tfiles.EF           = sprintf('%sHEDGE_EF_%4i',tfold,Tyear);
+tfiles.CarPark      = sprintf('%sSSB_CarPark_%4i',ofold,Tyear);
+tfiles.DD_Municipal = sprintf('%sRoadTypeDistanceMunicipal%4i',ofold,Tyear);
 
 if input.options.remove_NoTrafficRoads
     tfiles.CleanRoads = sprintf('%s_Cleaned0Removed',input.files.Trafficfile);

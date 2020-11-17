@@ -24,7 +24,7 @@ fprintf('---------------------------------------------------------------\n')
 % OPT TODO: ADD a test to check for data from municipality and year
 
 if input.options.use_temporary_files && exist(tfiles.CarPark,'file')
-	Vehicle_data = load(tfiles.CarPark)
+	Vehicle_data = load(tfiles.CarPark);
 else
 	Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV();
 end
@@ -103,6 +103,7 @@ Vehicle_dist.D2_VehicleNum = T.ModelNumber;
 Vehicle_dist.TrafficIN     = TrafficIN;
 Vehicle_dist.TrafficFROM   = TrafficFROM;
 Vehicle_dist.D12_Traffic   = EXkmneNr;
+save(tfiles.CarPark,'Vehicle_dist',-append)
 %--------------------------------------------------------------------------
 % Statistical output.
     Vehicle_Distribution_Statistical_output(Vehicle_data,T)

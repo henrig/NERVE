@@ -20,7 +20,7 @@ function [Sn] = Emissions_Calculations_SSB()
 % Kjeller NILU
 %--------------------------------------------------------------------------
 global tfold Tyear SSB_Vehicle_dist comps RLinks Vehicle_dist Vehicle_weight
-global debug_mode ofiles
+global debug_mode ofiles input
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Emissions_Calculations_SSB    *\n')
 fprintf('---------------------------------------------------------------\n')
@@ -115,8 +115,11 @@ for com = 1:length(comps)
     % try
     %    TEF = load(ofiles.MatlabOutput,sprintf('OnRoadEF_RoadClasses_%i',char(coms(com))))
     % catch
-    %    fprintf('reading excel file\n') 
-         TEF = readtable('OnRoadEF_RoadClasses.xlsx','Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);
+    %    fprintf('reading excel file\n')
+    TEF = readtable(sprintf('OnRoadEF_RoadClasses_%s.xlsx',char(comps(com))),'Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);
+    tmpfile = sprintf('%sEF_On_AllRoadCond_Municipality_%i_%s.mat',tfold,Tyear,char(comps(com)));
+    load(tmpfile)
+    
     % end
     %%%%%%%%%%%%%%%%%%%%%%
     fprintf('Loaded.\n')
@@ -167,9 +170,9 @@ for com = 1:length(comps)
     TLinks.HeaEM =  EMISS_H;
     TLinks.BusEM =  EMISS_B;
     
-    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'LetEM'))) = {sprintf('EM_Light_%s',char(comps(com)))};
-    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'HeaEM'))) = {sprintf('EM_Heavy_%s',char(comps(com)))};
-    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'BusEM'))) = {sprintf('EM_Buses_%s',char(comps(com)))};
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'LetEM'))) = {sprintf('EM_L_%s',char(comps(com)))};
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'HeaEM'))) = {sprintf('EM_H_%s',char(comps(com)))};
+    TLinks.Properties.VariableNames(find(ismember(TLinks.Properties.VariableNames,'BusEM'))) = {sprintf('EM_B_%s',char(comps(com)))};
     RLinks = table2struct(TLinks);
     
     % Print some statistical output
