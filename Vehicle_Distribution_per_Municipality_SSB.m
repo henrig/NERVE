@@ -103,7 +103,7 @@ Vehicle_dist.D2_VehicleNum = T.ModelNumber;
 Vehicle_dist.TrafficIN     = TrafficIN;
 Vehicle_dist.TrafficFROM   = TrafficFROM;
 Vehicle_dist.D12_Traffic   = EXkmneNr;
-save(tfiles.CarPark,'Vehicle_dist',-append)
+save(tfiles.CarPark,'Vehicle_dist','-append')
 %--------------------------------------------------------------------------
 % Statistical output.
     Vehicle_Distribution_Statistical_output(Vehicle_data,T)
