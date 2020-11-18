@@ -24,7 +24,7 @@ fprintf('---------------------------------------------------------------\n')
 fprintf('in Emission_Factors_OnRoadAllCond *\n')
 fprintf('---------------------------------------------------------------\n')
 
-end
+
 
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;

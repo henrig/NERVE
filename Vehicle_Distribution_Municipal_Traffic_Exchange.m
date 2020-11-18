@@ -1,10 +1,20 @@
+%--------------------------------------------------------------------------
+% This file is part of NERVE
+% 
+% NERVE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation version 3.
+% 
+% NERVE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with NERVE.  If not, see <https://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 function [kmne,TrafficIN,TrafficFROM] = Vehicle_Distribution_Municipal_Traffic_Exchange()
 %--------------------------------------------------------------------------
-% Miljodirektoratet Traffic emission model NERVE:
-%
-%     FUNCTION :: mix_in_biofuels_NERVE ::
-%     Function to adjust emission factor for biofuels. Only applied if comp == CO2.
-%
 % -INPUT  : .xlsx Exchange matrix file (RTMpexch) sheet='Biofuels'. Emssion
 %  factors per municipality (KEF).
 % -OUTPUT : KEF adjusted for biofuels.
@@ -17,7 +27,8 @@ global tfold Tyear KmneNr KmneNavn debug_mode text_div
 global traff_exchange traff_exchange_sh
 
 fprintf('%s\n',text_div)
-fprintf('* call Municipal_Traffic_Exchange_NERVE *\n')
+fprintf('in Vehicle_Distribution_Municipal_Traffic_Exchange *\n')
+fprintf('%s\n',text_div)
 fprintf('---  Finding Origin of Traffic in each municipality \n')
 
 %RTMsheet = '2020_Utveksling';

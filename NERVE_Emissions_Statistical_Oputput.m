@@ -33,24 +33,25 @@ for com = 1:length(comps)
     % files that must be read per species
     R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s.mat',char(comps(com)));
     load(R_EF_File,'TFout'); % TFout
-    
+
     fprintf('%s\n',char(comps(com)))
 
-    for Tyear = 2018:2019
-    fprintf('%i\n',Tyear)
+    for Tyear = 2009:2019
+        fprintf('%i\n',Tyear)
 
         % files that must be read per year
         munFile = sprintf('Temp/Municipal_Traffic_Exchange_%i.mat',Tyear);
-        load(munFile)
         RdDistFile = sprintf('Output/RoadTypeDistanceMunicipal%i.mat',Tyear);
+        load(munFile)
         load(RdDistFile) % KDD
         
         % files that must be read for each year and component!
         EF_File = sprintf('Temp/EF_On_AllRoadCond_Municipality_%i_%s.mat',Tyear,char(comps(com)));
         load(EF_File)
                 
-        DaysInYear = datenum([Tyear+1 1 1 0 0 0])-datenum([Tyear 1 1 0 0 0]);
         RLinks = shaperead(sprintf('Output/Traffic_Emissions_%i',Tyear));
+
+        DaysInYear = datenum([Tyear+1 1 1 0 0 0])-datenum([Tyear 1 1 0 0 0]);
         
         KOMM       = extractfield(RLinks,'KOMMS');
         KOMMe      = extractfield(RLinks,'KOMME');
@@ -92,7 +93,6 @@ for com = 1:length(comps)
         end
         
         % Vehicle_dist
-        
         %------------------------------------------------------------------
         % find *NV(kom,veh)* from:: SSB data
         % find *TD(kom,veh)* from:: SSB data
@@ -100,8 +100,8 @@ for com = 1:length(comps)
         % find *FrdComp(kom,veh)* from:: SSB data
         NV  = Vehicle_dist.modelNV;
         TD  = Vehicle_dist.modelTD;
-        OrdComp = Vehicle_dist.Vdist;
-        FrdComp = Vehicle_dist.VdistFROM;        
+        ORdComp = Vehicle_dist.Vdist;
+        FRdComp = Vehicle_dist.VdistFROM;        
         
         %------------------------------------------------------------------
         % Estimate *EF_IN(kom,Veh)  * based on:::: EF_IN and exchange
@@ -138,11 +138,11 @@ for com = 1:length(comps)
             for veh = 1:length(vehicles)
                 type = TM.Model_Class(veh);
                 if type <= 2
-                    EM_IN(k,veh) = L_IN(k)*OrdComp(k,veh)*EF_IN(k,veh);
+                    EM_IN(k,veh) = L_IN(k)*ORdComp(k,veh)*EF_IN(k,veh);
                 elseif (type == 5 || type == 6 || type == 7)
-                    EM_IN(k,veh) = H_IN(k)*OrdComp(k,veh)*EF_IN(k,veh);
+                    EM_IN(k,veh) = H_IN(k)*ORdComp(k,veh)*EF_IN(k,veh);
                 elseif (type == 3 || type == 4)
-                    EM_IN(k,veh) = B_IN(k)*OrdComp(k,veh)*EF_IN(k,veh);
+                    EM_IN(k,veh) = B_IN(k)*ORdComp(k,veh)*EF_IN(k,veh);
                 end
             end
         end
@@ -173,11 +173,11 @@ for com = 1:length(comps)
             for veh = 1:length(vehicles)
                 type = TM.Model_Class(veh);
                 if type <= 2
-                    EM_FROM(k,veh) = L_FROM(k)*OrdComp(k,veh)*EF_FROM(k,veh);
+                    EM_FROM(k,veh) = L_FROM(k)*FRdComp(k,veh)*EF_FROM(k,veh);
                 elseif (type == 5 || type == 6 || type == 7)
-                    EM_FROM(k,veh) = H_FROM(k)*OrdComp(k,veh)*EF_FROM(k,veh);
+                    EM_FROM(k,veh) = H_FROM(k)*FRdComp(k,veh)*EF_FROM(k,veh);
                 elseif (type == 3 || type == 4)
-                    EM_FROM(k,veh) = B_FROM(k)*OrdComp(k,veh)*EF_FROM(k,veh);
+                    EM_FROM(k,veh) = B_FROM(k)*FRdComp(k,veh)*EF_FROM(k,veh);
                 end
             end
         end
@@ -187,7 +187,7 @@ for com = 1:length(comps)
         
         
         fileout = sprintf('Output/NERVE_output_%s_%04i.mat',char(comps(com)),Tyear);
-        fprintf('Processed Emissions for %s year %i\n',Tyears,char(comps(com)))
+        fprintf('Processed Emissions for %s year %i\n',char(comps(com)),Tyear)
         save(fileout,'NV','TD','L_IN','H_IN','B_IN','L_FROM','H_FROM','B_FROM','ORdComp','FRdComp','EF_IN','EF_FROM','EM_IN','EM_FROM')
     end
 end

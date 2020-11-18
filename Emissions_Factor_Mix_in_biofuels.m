@@ -36,7 +36,7 @@ fprintf('\t---- Subtracting biofuel share from CO2 Emission Factors \n')
 
 sheet           = 'Biofuels';
 BioInnblanding  = readtable(input.files.Bio_mix_file,'Sheet',sheet,'ReadVariableNames',true);
-fprintf('\tRead Biofuels from %s\nSheet ::: %s\n',input.files.Bio_mix_file,sheet)
+fprintf('\tRead Biofuels from %s\n\tSheet ::: %s\n',input.files.Bio_mix_file,sheet)
 pos             = find(ismember(BioInnblanding.Properties.VariableNames,sprintf('x%i',Tyear)));
 Bio             = table2array(BioInnblanding(:,pos));
 fprintf('\t-----------\n')
@@ -133,7 +133,7 @@ EFnew = nanmean(EFs);
 fprintf('\tAdjusted Petrol by -%4.1f%% of %4.1f%%\n',100*(1-nanmean(EFnew(Petrol))/nanmean(EFold(Petrol))),100*Bio(2))
 fprintf('\tAdjusted Diesel by -%4.1f%% of %4.1f%%\n',100*(1-nanmean(EFnew(Diesel))/nanmean(EFold(Diesel))),100*Bio(3))
 fprintf('\tAdjusted Gas    by -%4.1f%% of %4.1f%%\n',100*(1-nanmean(EFnew(Gas))/nanmean(EFold(Gas))),100*Bio(4))    
-fprintf('\t CONTINUING-----------------------------\n')    
+fprintf('\t CONTINUING\n-----------------------------\n')    
 TFout(:,8:end) = array2table(EFs);
 TMout = TFout;
 end
