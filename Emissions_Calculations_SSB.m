@@ -37,7 +37,7 @@ file = sprintf('%s%s',tfold,'roads');
 fprintf('### Warning, using roads file not produced by NERVE model\n%s\n',file)
 load(file)
 
-TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+TM = readtable(input.files.SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
@@ -110,18 +110,12 @@ for com = 1:length(comps)
     EMISS_B = zeros(size(RLinks));
     Link_emission_factor= zeros(size(RLinks));
     fprintf('<--- %s ---\n',char(comps(com)))
+    
     fprintf('Loading large file\n...')
-    %%%%%%%%%%%%%%%%%%%%%%%
-    % try
-    %    TEF = load(ofiles.MatlabOutput,sprintf('OnRoadEF_RoadClasses_%i',char(coms(com))))
-    % catch
-    %    fprintf('reading excel file\n')
-    TEF = readtable(sprintf('OnRoadEF_RoadClasses_%s.xlsx',char(comps(com))),'Sheet',sprintf('%s_%i',char(comps(com)),Tyear),'PreserveVariableNames',1);
     tmpfile = sprintf('%sEF_On_AllRoadCond_Municipality_%i_%s.mat',tfold,Tyear,char(comps(com)));
     load(tmpfile)
-    
-    % end
-    %%%%%%%%%%%%%%%%%%%%%%
+    TEF = Trout;
+
     fprintf('Loaded.\n')
     tef = TEF.Name;
     for r =1:length(L)
@@ -176,7 +170,7 @@ for com = 1:length(comps)
     RLinks = table2struct(TLinks);
     
     % Print some statistical output
-    fprintf('\n---- NORGE --- %i\n',Tyear)
+    fprintf('\n---- NORGE --- %i %s \n',Tyear,char(comps(com)))
     fprintf('---- Lette   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*sum(EMISS_L),char(comps(com)),100*nansum(EMISS_L)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Tunge   %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(EMISS_H),char(comps(com)),100*nansum(EMISS_H)/nansum(EMISS_L + EMISS_H + EMISS_B))
     fprintf('---- Busser  %11.1f   (1000)Ton %s (%3.0f%%)\n'  ,1e-9*nansum(EMISS_B),char(comps(com)),100*nansum(EMISS_B)/nansum(EMISS_L + EMISS_H + EMISS_B))

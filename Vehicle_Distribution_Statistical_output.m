@@ -15,17 +15,8 @@
 %--------------------------------------------------------------------------
 function Vehicle_Distribution_Statistical_output(Vehicle_data,T)
 %--------------------------------------------------------------------------
-% Statistical output.
-% Tb = table;
-% Tb.ModNum  = T.ModelNumber;
-% Tb.ModName = T.Name;
-% Tb.Class   = str2num(char(T.ClassNum));
-%
-% Tb.OsloNV    = modelNV(1,:)';
-% Tb.OsloADD   = modelTD(1,:)';
-% Tb.OsloPct   = modelTDfrac(1,:)'*100;
-% Tb.OsloPctEX = modelVdistIN(1,:)'*100;
-% writetable(T,'National_SSB_Vehicle_Number_Distribution.xlsx','Sheet','MunicipalStats_VehicleDistribution')
+% National Statistical output.
+
 % National Number of vehicles
 global ofiles
 National = squeeze(sum(Vehicle_data.YNV,2));
@@ -54,9 +45,8 @@ for k = 1:size(National,1)
     vn = find(ismember(Ts.Properties.VariableNames,'Var1'));
     Ts.Properties.VariableNames(vn)= {sprintf('x%i',Vehicle_data.D1_yrs(k))};
 end
-file    = 'National_SSB_Vehicle_Number_Distribution.xlsx';
-writetable(T,file,'Sheet','NationalNumberVehicles')
-fprintf('Wrote National Vehicle stats file :\n%s\n',file)
+writetable(T,ofiles.SSB_Stat,'Sheet','NationalNumberVehicles')
+fprintf('Wrote National Vehicle stats file :\n%s\n',ofiles.SSB_Stat)
 % National Driving Distance
 National = squeeze(sum(Vehicle_data.YTD,2));
 k=1;
@@ -84,5 +74,5 @@ for k = 1:size(National,1)
     vn = find(ismember(Ts2.Properties.VariableNames,'Var1'));
     Ts2.Properties.VariableNames(vn)= {sprintf('x%i',Vehicle_data.D1_yrs(k))};
 end
-writetable(T,'National_SSB_Vehicle_Number_Distribution.xlsx','Sheet','NationalTotalDistance')
+writetable(Ts2,ofiles.SSB_Stat,'Sheet','NationalTotalDistance')
 end

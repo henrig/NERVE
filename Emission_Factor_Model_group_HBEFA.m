@@ -15,7 +15,8 @@
 %--------------------------------------------------------------------------
 function Emission_Factor_Model_group_HBEFA()
 %--------------------------------------------------------------------------
-
+% The model classes have a static Emission Factor for each driving
+% condition. This means that 
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
@@ -35,6 +36,8 @@ fprintf('---   \n%s \n',input.files.SSB_Vehicle_dist)
 T  = readtable(input.files.SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
 Tm = readtable(input.files.SSB_Vehicle_dist,'Sheet','MODEL');
 fprintf('read Sheet : %s and Sheet %s\n','HBEFA778toMODEL','MODEL')
+fprintf('Using weight %s \n',Vehicle_weight)
+
 
 % ModelNumber HBEFA_Weight    Uniform_Weight
 modelN = unique(T.ModelNumber);
@@ -49,16 +52,16 @@ for com =1:length(comps)
     
     if (~input.options.do_preProcessing_HBEFA && input.options.use_temporary_files && exist(oEFfile))
         fprintf('Using saved %s EFA_Table_MODEL file\n',char(comps(com)))
-        load(oEFfile)
     else
+        fprintf('Calculating New  EFA_Table_MODEL_%s file\n',char(comps(com)))
         
         load(iEFfile);
         D = size(EF_AVG);
         fprintf('EF_AVG -- Dimensions\n')
         for i=1:length(D)
-            fprintf('EF_AVG D%i  : %i\n',i,D(i));
+            fprintf(' D%i:%-3i  ',i,D(i));
         end
-
+        fprintf('\n')
         
         % Tables are slow to work with and requires a lot of memory, but given
         % the state of HBEFA, they offer good control of emission factors and
@@ -66,14 +69,14 @@ for com =1:length(comps)
         TFout = table;
         % Loop all model vehicles
         for mod = 1:length(modelN)
-            
             % Make the subset of emissions/weights needed to calculate a model
             % vehicle group.
             Tsub  = T(T.ModelNumber==modelN(mod),:);
             % Make vehicles with HBEFA weight
             EFsub = EF_AVG(Tsub.HBEFA_Num,:,:,:,:,:);
             
-            % Check how many non-nan EF there are in each Vehicle.
+            % Check how many non-nan EF there are in each Vehicle. Missing
+            % EF should be as nan and so this filter them out.
             Nef=[];
             for  i =1:size(EFsub,1)
                 Nef(i) = length(find(~isnan(EFsub(i,:,:,:,:,:,:))));
@@ -82,7 +85,7 @@ for com =1:length(comps)
             
             % If there are only one amount (1440) of Emission factors
             if length(uef) == 1
-                fprintf('MODEL Vehicle: %3i %-42s Found #%i EF',modelN(mod),char(Tm.Name(modelN(mod))),uef)
+                fprintf('MODEL Vehicle: %3i %-42s Found #%i EF\n',modelN(mod),char(Tm.Name(modelN(mod))),uef)
                 Tout = table;
                 k = 1;
                 for roa = 1:size(EF_AVG,2)
@@ -111,8 +114,16 @@ for com =1:length(comps)
                 
                 EFac = nan(height(Tout),1);
                 Wght = nan(height(Tout),1);
-                for cond = 1:height(Tout)
-                    for veh = 1:height(Tsub)
+                for veh = 1:height(Tsub)
+                    switch Vehicle_weight
+                        case 'Uniform'
+                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.Uniform_Weight))
+                        case 'NERVE'
+                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.NERVE_Weight))
+                        case 'HBEFA'
+                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.HBEFA_Weight))
+                    end
+                    for cond = 1:height(Tout)
                         if veh == 1
                             switch Vehicle_weight
                                 case 'Uniform'
@@ -139,17 +150,20 @@ for com =1:length(comps)
                             end
                         end
                     end
-                end
-                if debug_mode
-                    sprintf('%s_%sWeight',char(comps(com)),Vehicle_Weight)
-                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min) \n',mean(EFac./Wght),max(EFac./Wght),min(EFac./Wght))
-                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min) \n',mean(Wght),max(Wght),min(Wght))
-                else
                     fprintf('\n')
                 end
                 
                 Tout.EFac = EFac./Wght;
-                Tout.Properties.VariableNames(find(ismember(Tout.Properties.VariableNames,{'EFac'}))) = Tm.Name(modelN(mod));
+                pos = find(ismember(Tout.Properties.VariableNames,{'EFac'}));
+                
+                Tout.Properties.VariableNames(pos) = Tm.Name(modelN(mod));
+                if debug_mode
+                    fprintf('%s_%s_weight',char(comps(com)),Vehicle_weight)
+                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min)   ',mean(EFac./Wght),max(EFac./Wght),min(EFac./Wght))
+                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min) \n',mean(Wght),max(Wght),min(Wght))
+                else
+                    fprintf('\n')
+                end
             else
                 % if this is the case, there are NaNs in the emission factor
                 % and we will get wrong results.
@@ -177,65 +191,14 @@ for com =1:length(comps)
             
         end
         
-        EFrdCond = table2array(TFout(:,8:end));        
+        EFrdCond = table2array(TFout(:,8:end));
         save(oEFfile,'TFout','roads','EFrdCond')
-        fprintf('Saved an excel-file for Emission Factors Model:\n%s\n',oEFfile)
-        writetable(TFout,ofile,'Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight))
-        fprintf('Saved an excel-file for Emission Factors Model:\n%s\n',ofile)
-
+        fprintf('Saved an temp .mat -file for Emission Factors Model:\n%s\n',oEFfile)
+        
+        % writetable(TFout,ofile,'Sheet',sprintf('%s_%s_Weight',char(comps(com)),Vehicle_weight))
+        % fprintf('Saved an excel-file for Emission Factors Model:\n%s\n',ofile)
+        
     end
-
-    switch char(comps(com))
-        case 'FC'
-            MunicpalHBEFA_RoadsEF_FC = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_FC','roads','-append');
-        case 'FC_MJ'
-            MunicpalHBEFA_RoadsEF_FC_MJ = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_FC_MJ','roads','-append');
-        case 'CH4'
-            MunicpalHBEFA_RoadsEF_CH4 = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CH4','roads','-append');
-        case 'BC'
-            MunicpalHBEFA_RoadsEF_BC = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_BC','roads','-append');
-        case 'PM'
-            MunicpalHBEFA_RoadsEF_PM = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_PM','roads','-append');
-        case 'HC'
-            MunicpalHBEFA_RoadsEF_HC = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_HC','roads','-append');
-        case 'CO'
-            MunicpalHBEFA_RoadsEF_CO = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CO','roads','-append');
-        case 'NOx'
-            MunicpalHBEFA_RoadsEF_NOx = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NOx','roads','-append');
-        case 'Be'
-            MunicpalHBEFA_RoadsEF_Be = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_Be','roads','-append');
-        case 'NMHC'
-            MunicpalHBEFA_RoadsEF_NMHC = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NMHC','roads','-append');
-        case 'NO2'
-            MunicpalHBEFA_RoadsEF_NO2 = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NO2','roads','-append');
-        case 'NO'
-            MunicpalHBEFA_RoadsEF_NO = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NO','roads','-append');
-        case 'PN'
-            MunicpalHBEFA_RoadsEF_PN = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_PN','roads','-append');
-        case 'CO2'
-            MunicpalHBEFA_RoadsEF_CO2 = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_CO2','roads','-append');
-        case 'N2O'
-            MunicpalHBEFA_RoadsEF_N2O = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_N2O','roads','-append');
-        case 'NH3'
-            MunicpalHBEFA_RoadsEF_NH3 = TFout;
-            save(ofiles.MatlabOutput,'MunicpalHBEFA_RoadsEF_NH3','roads','-append');
-    end
-    
 end
 
 end

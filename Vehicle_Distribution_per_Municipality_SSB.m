@@ -21,11 +21,17 @@ fprintf('in Vehicle_Distribution_per_Municipality_SSB *\n')
 fprintf('---------------------------------------------------------------\n')
 
 
-% OPT TODO: ADD a test to check for data from municipality and year
 
 if input.options.use_temporary_files && exist(tfiles.CarPark,'file')
-	Vehicle_data = load(tfiles.CarPark);
+	load(tfiles.CarPark)
+	fprintf('Returning with temporary dumped data\n')
+	return
+end
+
+if input.options.use_temporary_files && exist(tfiles.CarParks,'file')
+	load(tfiles.CarParks)
 else
+	fprintf('Creating New SSB model data\n')
 	Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV();
 end
 % Extract only the traffic from the traffic year and reshape euro and SSB
@@ -103,7 +109,7 @@ Vehicle_dist.D2_VehicleNum = T.ModelNumber;
 Vehicle_dist.TrafficIN     = TrafficIN;
 Vehicle_dist.TrafficFROM   = TrafficFROM;
 Vehicle_dist.D12_Traffic   = EXkmneNr;
-save(tfiles.CarPark,'Vehicle_dist','-append')
+save(tfiles.CarPark,'Vehicle_dist')
 %--------------------------------------------------------------------------
 % Statistical output.
     Vehicle_Distribution_Statistical_output(Vehicle_data,T)

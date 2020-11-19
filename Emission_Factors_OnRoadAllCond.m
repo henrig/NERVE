@@ -17,16 +17,14 @@ function Emission_Factors_OnRoadAllCond()
 % Function for Road link calculations computes for each municipality an
 % emission factor (EF) for Light, Heavy and Buses.
 % This needs to be run for each component and each year.
-global tfold Tyear SSB_Vehicle_dist comps Vehicle_dist Vehicle_weight
+global tfold Tyear SSB_Vehicle_dist comps Vehicle_dist
 global debug_mode ofiles use_temporary_files input
 
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Emission_Factors_OnRoadAllCond *\n')
 fprintf('---------------------------------------------------------------\n')
 
-
-
-TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
+TM = readtable(input.files.SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
@@ -34,12 +32,10 @@ VD               = Vehicle_dist.Vdist;
 % Loop all components to be calculated:
 for com = 1:length(comps)
     fprintf('<--- %s\n',char(comps(com)))
-    ofile   = sprintf('OnRoadEF_RoadClasses_%s.xlsx',char(comps(com)));
-    osheet  = sprintf('%s_%i',char(comps(com)),Tyear);
     tmpfile = sprintf('%sEF_On_AllRoadCond_Municipality_%i_%s.mat',tfold,Tyear,char(comps(com)));
     
     if use_temporary_files && exist(tmpfile)
-        fprintf('Has all necessary  EF files for :%s \n',char(comps(com)))
+        fprintf('Has all necessary  EF files for :%s \n',char(comps(com)))    
     else
         
         oEFfile = sprintf('%sEFA_Table_MODEL_%s.mat',tfold,char(comps(com)));
@@ -101,6 +97,8 @@ for com = 1:length(comps)
             Trout.Properties.VariableNames(find(ismember(Trout.Properties.VariableNames,'Buses'))) = {sprintf('EF_Buses_%04i',Vehicle_dist.D1_KommNr(komm))};
         end
         
+        % These are the on road emission factors used for road link
+        % calculations in each municipality.
         K_EF.distNames  = Trout.Properties.VariableNames;
         K_EF.traffSit   = Trout.Name;
         K_EF.TraffSitID = Trout(:,2:7);
@@ -113,67 +111,69 @@ for com = 1:length(comps)
         K_EF.kommNamesL  = Trout.Properties.VariableNames(idl);
         K_EF.kommNamesH  = Trout.Properties.VariableNames(idh);
         K_EF.kommNamesB  = Trout.Properties.VariableNames(idb);
-        save(tmpfile,'K_EF')
+        save(tmpfile,'K_EF','Trout')
         fprintf('saved a tmp file \n%s\n',tmpfile)
         
-        writetable(Trout,ofile,'Sheet',osheet)
-        fprintf('Wrote Sheet: %s \n to file; %s\n',osheet,ofile)
+%         ofile   = sprintf('OnRoadEF_RoadClasses_%s.xlsx',char(comps(com)));
+%         osheet  = sprintf('%s_%i',char(comps(com)),Tyear);
+%         writetable(Trout,ofile,'Sheet',osheet)
+%         fprintf('Wrote Sheet: %s \n to file; %s\n',osheet,ofile)
         
         fprintf('%s--- >\n',char(comps(com)))
         
         
         % Use a switch for string as MatLab do not love variable names changes
         % inside loops...
-        switch char(comps(com))
-            case 'FC'
-                OnRoadEF_RoadClasses_FC = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC','-append');
-            case 'FC_MJ'
-                OnRoadEF_RoadClasses_FC_MJ = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC_MJ','-append');
-            case 'CH4'
-                OnRoadEF_RoadClasses_CH4 = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CH4','-append');
-            case 'BC'
-                OnRoadEF_RoadClasses_BC = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_BC','-append');
-            case 'PM'
-                OnRoadEF_RoadClasses_PM = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PM','-append');
-            case 'HC'
-                OnRoadEF_RoadClasses_HC = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_HC','-append');
-            case 'CO'
-                OnRoadEF_RoadClasses_CO = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO','-append');
-            case 'NOx'
-                OnRoadEF_RoadClasses_NOx = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NOx','-append');
-            case 'Be'
-                OnRoadEF_RoadClasses_Be = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_Be','-append');
-            case 'NMHC'
-                OnRoadEF_RoadClasses_NMHC = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NMHC','-append');
-            case 'NO2'
-                OnRoadEF_RoadClasses_NO2 = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO2','-append');
-            case 'NO'
-                OnRoadEF_RoadClasses_NO = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO','-append');
-            case 'PN'
-                OnRoadEF_RoadClasses_PN = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PN','-append');
-            case 'CO2'
-                OnRoadEF_RoadClasses_CO2 = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO2','-append');
-            case 'N2O'
-                OnRoadEF_RoadClasses_N2O = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_N2O','-append');
-            case 'NH3'
-                OnRoadEF_RoadClasses_NH3 = Trout;
-                save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NH3','-append');
-        end
+%         switch char(comps(com))
+%             case 'FC'
+%                 OnRoadEF_RoadClasses_FC = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC','-append');
+%             case 'FC_MJ'
+%                 OnRoadEF_RoadClasses_FC_MJ = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_FC_MJ','-append');
+%             case 'CH4'
+%                 OnRoadEF_RoadClasses_CH4 = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CH4','-append');
+%             case 'BC'
+%                 OnRoadEF_RoadClasses_BC = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_BC','-append');
+%             case 'PM'
+%                 OnRoadEF_RoadClasses_PM = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PM','-append');
+%             case 'HC'
+%                 OnRoadEF_RoadClasses_HC = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_HC','-append');
+%             case 'CO'
+%                 OnRoadEF_RoadClasses_CO = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO','-append');
+%             case 'NOx'
+%                 OnRoadEF_RoadClasses_NOx = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NOx','-append');
+%             case 'Be'
+%                 OnRoadEF_RoadClasses_Be = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_Be','-append');
+%             case 'NMHC'
+%                 OnRoadEF_RoadClasses_NMHC = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NMHC','-append');
+%             case 'NO2'
+%                 OnRoadEF_RoadClasses_NO2 = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO2','-append');
+%             case 'NO'
+%                 OnRoadEF_RoadClasses_NO = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NO','-append');
+%             case 'PN'
+%                 OnRoadEF_RoadClasses_PN = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_PN','-append');
+%             case 'CO2'
+%                 OnRoadEF_RoadClasses_CO2 = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_CO2','-append');
+%             case 'N2O'
+%                 OnRoadEF_RoadClasses_N2O = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_N2O','-append');
+%             case 'NH3'
+%                 OnRoadEF_RoadClasses_NH3 = Trout;
+%                 save(ofiles.MatlabOutput,'OnRoadEF_RoadClasses_NH3','-append');
+%         end
     end
     
 end

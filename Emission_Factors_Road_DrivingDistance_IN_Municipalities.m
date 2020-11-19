@@ -19,23 +19,20 @@ function Emission_Factors_Road_DrivingDistance_IN_Municipalities()
 
 
 global RLinks tfold Tyear Vehicle_dist debug_mode SSB_Vehicle_dist ofiles
-global tfiles
+global tfiles input
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Emission_Factors_Road_DrivingDistance_IN_Municipalities    *\n')
 fprintf('---------------------------------------------------------------\n')
-
-
 
 TM = readtable(SSB_Vehicle_dist,'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 
-T = readtable('modelHBEFA.xlsx','Sheet','Roads');
+T = readtable(input.files.HBEFA_roads,'Sheet','Roads');
 file = sprintf('%s%s',tfold,'roads');
-fprintf('### Warning,using roads file not produced by NERVE model\n%s\n',file)
+fprintf('### Warning,circumventing temp file  "roads" \n not produced by NERVE model\n%s\n',file)
 load(file)
-
 
 % All road links kilometer per type of road Light / Heavy / Bus
 nDD_L = zeros(height(T),1);
@@ -61,7 +58,7 @@ uKomm     = unique(KommunerS);
 % Congestion weights.  Traffic part delayed (TPD)
 % Combine the different congestion levels by volume to determine the
 % actual EF:
-fprintf('### Warning, using parameterized CONGESTION\n%s\n',file)
+fprintf('### Warning, using parameterized CONGESTION\n\n')
 TPD_L=[1.0, 0.0, 0.0,  0.0,  0.0;...
     0.6, 0.4, 0.0,  0.0,  0.0;...
     0.6, 0.2, 0.2,  0.0,  0.0;...
@@ -115,7 +112,7 @@ for komm = 1:length(uKomm)
     KOMS    = extractfield(MRLinks,'KOMMS');
     
     if debug_mode
-        fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%9.3f   \n',1e-6*sum(L.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,LightVehiclesIdx)))
+        fprintf('     Light Traffic L=%7.1f (1 000 000) Km TDL=%9.3f   \n',1e-6*sum(L.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,LightVehiclesIdx)))
         fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%9.3f   \n',1e-6*sum(H.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,HeavyVehiclesIdx)))
         fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%9.3f   \n',1e-6*sum(B.*IDO.*LEN)*dayInYear,1e-6*sum(Vehicle_dist.modelTD(komm,BusesVehiclesIdx)))
     end
@@ -172,7 +169,7 @@ fprintf('     Light Traffic L=%7.1f (1 000 000) Km  TDL=%7.1f  (%5.1f%%) \n',LW,
 fprintf('     Heavy Traffic H=%7.1f (1 000 000) Km  TDH=%7.1f  (%5.1f%%) \n',HW,HTD,100*HW/HTD)
 fprintf('     Buses Traffic B=%7.1f (1 000 000) Km  TDB=%7.1f  (%5.1f%%) \n',BW,BTD,100*BW/BTD)
 
-writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
+% writetable(Tout,'Municipal_DrivingDistances_per_RoadType.xlsx','Sheet',sprintf('DD_%i',Tyear))
 
 KDD.distNames  = Tout.Properties.VariableNames;
 KDD.traffSit   = Tout.Name;
@@ -187,9 +184,9 @@ KDD.kommNamesL  = Tout.Properties.VariableNames(idl);
 KDD.kommNamesH  = Tout.Properties.VariableNames(idh);
 KDD.kommNamesB  = Tout.Properties.VariableNames(idb);
 KDD.Tyear  = Tyear;
-save(tfiles.DD_Municipal,'KDD')
-save(ofiles.MatlabOutput,'KDD','-append')
-
+save(tfiles.DD_Municipal,'KDD','Tout')
+% save(ofiles.MatlabOutput,'KDD','-append')
+fprintf('Finished processing driving distances\n\n')
 % DrivingDistances_per_RoadType = Tout;
 % save(ofiles.MatlabOutput,'DrivingDistances_per_RoadType','-append')
 end

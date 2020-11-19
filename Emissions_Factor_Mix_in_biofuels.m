@@ -28,7 +28,7 @@ function TMout = Emissions_Factor_Mix_in_biofuels(TFout)
 % 09.03.2018 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global Tyear debug_mode text_div exchfile input
+global Tyear debug_mode tfold input
 fprintf('\t---------------------------------------------------------------\n')
 fprintf('\tin Emissions_Factor_Mix_in_biofuels *\n')
 fprintf('\t---------------------------------------------------------------\n')
@@ -136,5 +136,7 @@ fprintf('\tAdjusted Gas    by -%4.1f%% of %4.1f%%\n',100*(1-nanmean(EFnew(Gas))/
 fprintf('\t CONTINUING\n-----------------------------\n')    
 TFout(:,8:end) = array2table(EFs);
 TMout = TFout;
+
+save(sprintf('%sEFA_Table_MODEL_CO2_Bio%i.mat',tfold,Tyear),'TFout')
 end
 

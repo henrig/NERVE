@@ -16,32 +16,29 @@
 function Emission_Factor_Process_HBEFA_Matrix_Raw()
 %--------------------------------------------------------------------------
 % Script for reading and processing HBEFA .csv file of subsegments.
-% Basically taken from NERVE, but includes some updates for the format of
+% Basically taken from HEDGE, but includes some updates for the format of
 % HBEFA4.1. Makes a 6-D matix of the emissions factor, convenient for speedy
 % processing.
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-% % Path to emissions
-% HBEFA_path = '/storage/nilu/Inby/Emission_Group/Emission_Factors/Traffic/HBEFA_Raw_data/HOT_HBEFA_41/';
-% % List the avalable species SLA have downloaded Emission factors for
-% comps      = [{'NOx'},{'CO2'},{'BC'},{'Be'},{'CO'},{'HC'},{'NMHC'},{'NO2'},{'PM'},{'PN'},{'NH3'},{'N2O'},{'CH4'},{'FC'},{'FC_MJ'}];
-
 global do_preProcessing_HBEFA debug_mode
 global HBEFA_path tfold comps
 
-fprintf('\tEmission_Factor_Process_HBEFA_Matrix_Raw  *\n')
+fprintf('---------------------------------------------------------------\n')
+fprintf('in Emission_Factor_Process_HBEFA_Matrix_Raw  *\n')
+fprintf('---------------------------------------------------------------\n')
 if ~do_preProcessing_HBEFA
     fprintf('We Already Have Necessary HBEFA Emission Factors \n')
-    fprintf('... Continuing Without new HBEFA calculations \n ... \n')
+    fprintf('... Continuing Without new HBEFA EFA_Matrix41_RAW calculations \n ... \n')
     return
 else
-    fprintf('Remaking HBEFA COMBINED files for Use in HEDGE \n')    
-    fprintf('Combine the "HGV" EF file with the "others" files\n')    
+    fprintf('Remaking HBEFA RAW_MATRIX files for Use in model \n')    
 end
 
-
-
+% The download from HBEFA has some variation in what is enterpreted as
+% numbers. Therefor need to define numeric and non numeric columns to be
+% able to combine them.
 % cell fields:
 SfldList = [{'Case'},{'VehCat'},{'Component'},{'TrafficSit'},{'Gradient'},{'Subsegment'},{'Technology'},{'SizeClasse'},{'EmConcept'},{'x_OfSubsegment'}];
 % Numerical fields:
@@ -49,21 +46,22 @@ NfldList = [{'Year'},{'TrafficScenario'},{'RoadCat'},{'IDSubsegment'},{'KM'},{'x
     {'EFA'},{'EFA_0_'},{'EFA_100_'},{'V_weighted'},{'V_weighted_0_'},{'V_weighted_100_'},{'EFA_weighted'},{'EFA_weighted_0_'},...
     {'EFA_weighted_100_'},{'EFA_WTT'},{'EFA_WTT_0_'},{'EFA_WTT_100_'},{'EFA_WTW'},{'EFA_WTW_0_'},{'EFA_WTW_100_'},{'AmbientCondPattern'}];
 
-
 % Loop over all compounds in comps list.
-redo = 1;
+redo = 0;
 for com = 1:length(comps)    
+    fprintf('Remaking HBEFA COMBINED files for Use in matrix Calculations \n')    
+    fprintf('Combine the "HGV" EF file with the "others" files\n')    
+
     % assumed a naming convention
     ifile1  = sprintf('%sEFA_HOT_Subsegm_%s.csv',HBEFA_path,char(comps(com)));
     ifile2  = sprintf('%sHGV/EFA_HOT_Subsegm_%s_hgv.csv',HBEFA_path,char(comps(com)));
-    
     % avoid doing process repeatedly (save a combined file)
     ifile3  = sprintf('%sCOMBINED_EFA_HOT_Subsegm_%s.csv',HBEFA_path,char(comps(com)));
     
     if ~exist(ifile3) || redo ==1
+        fprintf('COMBINIG TWO VERY LARGE FILES! \n')
         fprintf('ifile1: %s\n',ifile1)
         Tn1     = readtable(ifile1);
-        
         fprintf('ifile2: %s\n',ifile2)
         Tn2     = readtable(ifile2);
         
@@ -133,12 +131,12 @@ for com = 1:length(comps)
         fprintf('ifile3: %s\n',ifile3)
         Tn     = readtable(ifile3);
     end
-    %%%%%% FINISHED PAIRING HGV with Others
+    %------ END PAIRING HGV and Others
     %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Find the unique subsegments
     expected_veh = 778; % for HBEFA4.1
-    sub    = unique(Tn.Subsegment);
+    sub          = unique(Tn.Subsegment);
     fprintf('Number of subsegments in %s %i\n',char(comps(com)), length(sub))
     if length(sub) ~= expected_veh
         warning('May have flawed input data!')
@@ -387,7 +385,7 @@ for com = 1:length(comps)
         DriveOrig(v) = sum(~isnan(Tt.EFA_AVG));
         
         if debug_mode
-        fprintf('%03i %36s %i / %i :::: ',v, char(roads.Vehicles(v)),sum(count),height(Tt))
+        fprintf('%03i_%-46s %i / %i :::: ',v, char(roads.Vehicles(v)),sum(count),height(Tt))
         fprintf('Numeric EF %i / %i\n',Driving(v),sum(~isnan(Tt.EFA_AVG)))
         end
     end
@@ -395,7 +393,7 @@ for com = 1:length(comps)
     % save(sprintf('EFA_matrix_RAW_%s',char(comps(com))),'roads','EF_AVG','EF_000','EF_100')
     oEFfile = sprintf('%s/EFA_matrix41_RAW_%s',tfold,char(comps(com)));
     save(oEFfile,'roads','EF_AVG','EF_000','EF_100','traffCon');
-    fprintf('Saved temporary file\n%s\n',oEFfile)
+    fprintf('Saved temporary file: \n%s\n',oEFfile)
     
     clear Gradient Tn T RTID roads EF_*
 end

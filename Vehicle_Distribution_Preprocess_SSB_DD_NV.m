@@ -27,16 +27,21 @@ function Vehicle_data = Vehicle_Distribution_Preprocess_SSB_DD_NV()
 %   7 regaar
 
 global SSB_vehicle Kartverket use_temporary_files tfiles input
+global debug_mode
 
+fprintf('---------------------------------------------------------------\n')
 fprintf('\t in Vehicle_Distribution_Preprocess_SSB_DD_NV\n')
+fprintf('---------------------------------------------------------------\n')
 
-if use_temporary_files
+if input.options.use_temporary_files
     try
-        fprintf('Looking for file %s \n',tfiles.CarPark)
-        load(tfiles.CarPark)
+        fprintf('Looking for file %s \n',tfiles.CarParks)
+        load(tfiles.CarParks)
+        fprintf('Proceeding with file \n\n\n\n',tfiles.CarParks)
         return
     catch
         fprintf('#### No temporary file found \n')
+        fprintf('#### Making %s \n',tfiles.CarParks)
     end
 end
 
@@ -153,7 +158,9 @@ for y = 1:length(yrs)
     SSB_EU  = NaN(size(NV));
 
     for komm = 1:length(kommuner2020)
+	if debug_mode
          fprintf('\tKommune %i %s\n',kommuner2020(komm),char(kommuneNavn2020{komm}))
+	end
         I1 = Data.kommkode==kommuner2020(komm);
         BP = Data(I1,:);
         ST = [ST;[BP.kommkode(1),  BP.fylke(1),  BP.tid(1),  nansum(BP.antallkomm)]];           
@@ -253,8 +260,9 @@ Vehicle_data.D2_komm = kommuner2020;
 Vehicle_data.D3_nybiltype = [1:nybiltype];
 Vehicle_data.D4_euro      = [regaar-1:-1:0];
 
-if use_temporary_files
-   save(tfiles.CarPark, 'Vehicle_data') 
+if input.options.use_temporary_files
+   save(tfiles.CarParks, 'Vehicle_data')
+	fprintf('SSB data for model dumped %s \n',tfiles.CarParks)
 end
 
 end

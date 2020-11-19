@@ -3,7 +3,9 @@ function NERVE_Emissions_Statistical_Oputput()
 comps  = [{'N2O'}];
 comps  = [{'CO2'},{'FC'},{'CH4'},{'N2O'}];
 comps  = [{'CO2'},{'FC'},{'CH4'}];
-comps  = [{'CO2'},{'FC'}];
+%comps  = [{'CO2'},{'FC'}];
+%comps  = [{'CH4'}];
+
 %x NV(kom,veh) %#
 %x TD(kom,veh) %km
 %x ORdComp(kom,veh) % frac
@@ -21,7 +23,6 @@ comps  = [{'CO2'},{'FC'}];
 %s EF_FROM(kom,veh)  % g/km
 %s EM_FROM(kom,veh)  % g/yr
 
-
 % Files that must be read once only
 % 'Model_Vehicles_Merge_SSB_and_HBEFA_Vehicles.xlsx'
 TM = readtable('Input/Model_Vehicles_Merge_SSB_and_HBEFA_Vehicles.xlsx','Sheet','MODEL');
@@ -31,23 +32,32 @@ HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
 
 for com = 1:length(comps)
     % files that must be read per species
-    R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s.mat',char(comps(com)));
-    load(R_EF_File,'TFout'); % TFout
 
     fprintf('%s\n',char(comps(com)))
 
     for Tyear = 2009:2019
-        fprintf('%i\n',Tyear)
-
-        % files that must be read per year
-        munFile = sprintf('Temp/Municipal_Traffic_Exchange_%i.mat',Tyear);
-        RdDistFile = sprintf('Output/RoadTypeDistanceMunicipal%i.mat',Tyear);
-        load(munFile)
-        load(RdDistFile) % KDD
-        
         % files that must be read for each year and component!
         EF_File = sprintf('Temp/EF_On_AllRoadCond_Municipality_%i_%s.mat',Tyear,char(comps(com)));
         load(EF_File)
+
+        try
+            R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s_Bio%i.mat',char(comps(com)),Tyear);
+            load(R_EF_File,'TFout'); % TFout
+            fprintf('Found Bio File!   ')
+        catch
+            R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s.mat',char(comps(com)));
+            load(R_EF_File,'TFout'); % TFout
+        end
+        fprintf('%i',Tyear)
+
+        % files that must be read per year
+        munFile    = sprintf('Temp/Municipal_Traffic_Exchange_%i.mat',Tyear);
+        RdDistFile = sprintf('Output/RoadTypeDistanceMunicipal%i.mat',Tyear);
+        SSBCPfile  = sprintf('Temp/SSB_CarPark_%i.mat',Tyear);
+        load(munFile)    % TrafficIN TrafficFROM kmne
+        load(RdDistFile) % KDD
+        load(SSBCPfile)  % Vehicle_dist
+        
                 
         RLinks = shaperead(sprintf('Output/Traffic_Emissions_%i',Tyear));
 
@@ -88,18 +98,20 @@ for com = 1:length(comps)
             f  = find(KOMM  == ukomm(k));
             f2 = find((KOMMe == ukomm(k))&(KOMM ~= ukomm(k)) );
             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
-            EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
-            EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
+%             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
+%             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
         end
-        
+        pdata =1e-9*[sum(L_EM),sum(L_EM),sum(L_EM),sum(L_EM+H_EM+B_EM)];
+        fprintf('\tLIGHT:%6.2f,  HEAV:Y%6.2f,  BUS:%6.2f,  TOT:%6.2f\n',pdata)
+
         % Vehicle_dist
         %------------------------------------------------------------------
         % find *NV(kom,veh)* from:: SSB data
         % find *TD(kom,veh)* from:: SSB data
         % find *OrdComp(kom,veh)* from:: SSB data
         % find *FrdComp(kom,veh)* from:: SSB data
-        NV  = Vehicle_dist.modelNV;
-        TD  = Vehicle_dist.modelTD;
+        NV      = Vehicle_dist.modelNV;
+        TD      = Vehicle_dist.modelTD;
         ORdComp = Vehicle_dist.Vdist;
         FRdComp = Vehicle_dist.VdistFROM;        
         
@@ -111,7 +123,6 @@ for com = 1:length(comps)
         KDD_B = KDD.TraffDataB;
         
         % DOES NOT INCLUDE BIO!
-        
         RdEFs = table2array(TFout(:,8:end));       
         vehicles = TFout.Properties.VariableNames(8:end);
         for k=1:length(ukomm)
@@ -147,7 +158,9 @@ for com = 1:length(comps)
             end
         end
 
-        
+        pdata =[1e-9*nansum(nansum(EM_IN)),100*nansum(nansum(EM_IN))/sum(L_EM+H_EM+B_EM)];
+        fprintf('\t\t\t\t\tTOT_IN %8.1f diff %4.2f%%\n',pdata)
+ 
 % END IN
 %--------------------------------------------------------------------------
 % This method assigns the total Emissions based on the exchange.
@@ -160,7 +173,7 @@ for com = 1:length(comps)
             B_FROM(komm) = nansum(B_IN(I).*Tshare);
         end
         
-        EF_FROM=zeros(size(EF_IN));
+        EF_FROM = zeros(size(EF_IN));
         for komm=1:size(EF_IN,1)
             for Veh=1:size(EF_IN,2)
                  EF_FROM(komm,Veh) = EF_FROM(komm,Veh)+nansum(EF_IN(:,Veh).*(TrafficFROM(:,komm)/100));
@@ -181,11 +194,7 @@ for com = 1:length(comps)
                 end
             end
         end
-        
 
-        
-        
-        
         fileout = sprintf('Output/NERVE_output_%s_%04i.mat',char(comps(com)),Tyear);
         fprintf('Processed Emissions for %s year %i\n',char(comps(com)),Tyear)
         save(fileout,'NV','TD','L_IN','H_IN','B_IN','L_FROM','H_FROM','B_FROM','ORdComp','FRdComp','EF_IN','EF_FROM','EM_IN','EM_FROM')

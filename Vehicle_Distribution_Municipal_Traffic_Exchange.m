@@ -22,13 +22,23 @@ function [kmne,TrafficIN,TrafficFROM] = Vehicle_Distribution_Municipal_Traffic_E
 % 09.03.2018 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
-global tfold Tyear KmneNr KmneNavn debug_mode text_div
+global tfold Tyear KmneNr KmneNavn debug_mode 
 
-global traff_exchange traff_exchange_sh
+global traff_exchange traff_exchange_sh Kartverket input tfiles
 
-fprintf('%s\n',text_div)
+fprintf('---------------------------------------------------------------\n')
 fprintf('in Vehicle_Distribution_Municipal_Traffic_Exchange *\n')
-fprintf('%s\n',text_div)
+fprintf('---------------------------------------------------------------\n')
+if input.options.use_temporary_files
+    try
+        load(tfiles.Exchange)
+        fprintf('using dumped file %s\n',tfiles.Exchange)
+        return
+    catch
+        fprintf('Making new temp file\n')
+    end
+end
+
 fprintf('---  Finding Origin of Traffic in each municipality \n')
 
 %RTMsheet = '2020_Utveksling';
@@ -38,7 +48,6 @@ Mex  = readtable(traff_exchange,'Sheet',traff_exchange_sh);
 Mex.Properties.VariableNames(1)={'KommNr'};
 kmne = Mex.KommNr;
 exchange= table2array(Mex(:,2:end));
-
 % Debug the exchange Matrix.
 
 % the assumption is that all kmnes must have at least some traffic in their
@@ -66,25 +75,40 @@ InFrom = diag(TrafficFROM);
 InIn   = diag(TrafficIN);
 
 if debug_mode
-     If = find(InFrom>99.9);
+    ks = readtable(Kartverket,'Sheet','Kartverket_kommuner_2020');
+    Kb = sortrows(ks,'Kommunenr_2020');
+    KbKomms = Kb.Kommunenr_2020;
+    KmneNr = unique(KbKomms);
+    for i =1:length(KmneNr)
+        idx =  find(Kb.Kommunenr_2020 == KmneNr(i));
+        KmnNavn(i) = Kb.Kommunenavn_2020(idx(1));
+    end
+    
+    If = find(InFrom>99.9);
     fprintf('Municipality with 100%% Traffic From their own muncipality\n')
-    for i=1:length(If)
-     fprintf('%04i_%s\n',kmne(If(i)),char(KmneNavn(If(i))))
+    if ~isempty(If)
+        for i=1:length(If)
+            fprintf('%04i_%s\n',kmne(If(i)),char(KmnNavn(If(i))))
+        end
     end
     Ii = find(InIn>99.9);
     fprintf('Municipality with 100%% Traffic In their own muncipality\n')
-    for i=1:length(Ii)
-     fprintf('%04i_%s\n',KmneNr(Ii(i)),char(KmneNavn(Ii(i))))
+    if ~isempty(Ii)
+        for i=1:length(Ii)
+            fprintf('%04i_%s\n',KmneNr(Ii(i)),char(KmnNavn(Ii(i))))
+        end
     end
     fprintf('***** Test Oslo \n\n')
-    fprintf('%04i_%s %% Traffic %4.1f %4.1f\n',KmneNr(1),char(KmneNavn(1)),InIn(1),InFrom(1))
+    fprintf('%04i_%s %% Traffic InIn %4.1f%% InFrom %4.1f%%\n',KmneNr(1),char(KmnNavn(1)),InIn(1),InFrom(1))
     fprintf('***** Test Oslo \n\n')
-    fprintf('%04i_%s  %% Traffic On roads in Oslo With Oslo Registered Cars %4.1f %%\n',KmneNr(41),char(KmneNavn(41)),InIn(41))
-    fprintf('%04i_%s  Oslo Registered Cars %%  On roads in Oslo      %4.1f %%\n',KmneNr(41),char(KmneNavn(41)),InFrom(41))
+    fprintf('%04i_%s  %% Traffic On roads in Oslo With Oslo Registered Cars %4.1f %%\n',KmneNr(1),char(KmnNavn(1)),InIn(1))
+    fprintf('%04i_%s  Oslo Registered Cars %%  On roads in Oslo      %4.1f %%\n',KmneNr(1),char(KmnNavn(1)),InFrom(1))
 end
 
-
-save(sprintf('%sMunicipal_Traffic_Exchange_%04i.mat',tfold,Tyear),'kmne','TrafficIN','TrafficFROM','InIn','InFrom')
+if input.options.use_temporary_files
+    save(tfiles.Exchange,'kmne','TrafficIN','TrafficFROM','InIn','InFrom')
+    fprintf('Made: %s\n',tfiles.Exchange)
+end
 
 end
 
