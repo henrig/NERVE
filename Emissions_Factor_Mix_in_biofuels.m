@@ -34,7 +34,7 @@ fprintf('\tin Emissions_Factor_Mix_in_biofuels *\n')
 fprintf('\t---------------------------------------------------------------\n')
 fprintf('\t---- Subtracting biofuel share from CO2 Emission Factors \n')
 
-sheet           = 'Biofuels';
+sheet           = 'Biofuels_Energy';
 BioInnblanding  = readtable(input.files.Bio_mix_file,'Sheet',sheet,'ReadVariableNames',true);
 fprintf('\tRead Biofuels from %s\n\tSheet ::: %s\n',input.files.Bio_mix_file,sheet)
 pos             = find(ismember(BioInnblanding.Properties.VariableNames,sprintf('x%i',Tyear)));

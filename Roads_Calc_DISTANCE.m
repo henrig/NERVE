@@ -17,7 +17,7 @@ function [Sn] = Roads_Calc_DISTANCE(RLinks)
 fprintf('---------------------------------------------------------------\n')
 fprintf('in Roads_Calc_DISTANCE   *\n')
 fprintf('---------------------------------------------------------------\n')
-
+global debug_mode
 if isfield(RLinks,'DISTANCE')
     old_dst = extractfield(RLinks,'DISTANCE');
     mean_length =  nanmean(old_dst);

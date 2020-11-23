@@ -23,9 +23,17 @@ comps  = [{'CO2'},{'FC'},{'CH4'}];
 %s EF_FROM(kom,veh)  % g/km
 %s EM_FROM(kom,veh)  % g/yr
 
+if ispc
+    bp = 'N:\Inby';
+else
+   bp = '/storage/nilu/Inby';
+end
+pathn = sprintf('%s/Emission_Group/Emission_Models/HEDGE/',bp);
+
+
 % Files that must be read once only
 % 'Model_Vehicles_Merge_SSB_and_HBEFA_Vehicles.xlsx'
-TM = readtable('Input/Model_Vehicles_Merge_SSB_and_HBEFA_Vehicles.xlsx','Sheet','MODEL');
+TM = readtable(sprintf('%sInput/Model_Vehicles_Merge_SSB_and_HBEFA_Vehicles.xlsx',pathn),'Sheet','MODEL');
 LightVehiclesIdx = TM.ClassNum==1|TM.ClassNum==2;
 BusesVehiclesIdx = TM.ClassNum==3|TM.ClassNum==4;
 HeavyVehiclesIdx = TM.ClassNum==5|TM.ClassNum==6|TM.ClassNum==7;
@@ -37,29 +45,30 @@ for com = 1:length(comps)
 
     for Tyear = 2009:2019
         % files that must be read for each year and component!
-        EF_File = sprintf('Temp/EF_On_AllRoadCond_Municipality_%i_%s.mat',Tyear,char(comps(com)));
+        EF_File = sprintf('%sTemp/EF_On_AllRoadCond_Municipality_%i_%s.mat',pathn,Tyear,char(comps(com)));
         load(EF_File)
 
         try
-            R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s_Bio%i.mat',char(comps(com)),Tyear);
+            R_EF_File = sprintf('%sTemp/EFA_Table_MODEL_%s_Bio%i.mat',pathn,char(comps(com)),Tyear);
             load(R_EF_File,'TFout'); % TFout
             fprintf('Found Bio File!   ')
         catch
-            R_EF_File = sprintf('Temp/EFA_Table_MODEL_%s.mat',char(comps(com)));
+            R_EF_File = sprintf('%sTemp/EFA_Table_MODEL_%s.mat',pathn,char(comps(com)));
             load(R_EF_File,'TFout'); % TFout
         end
-        fprintf('%i',Tyear)
+        fprintf('%i\n',Tyear)
 
         % files that must be read per year
-        munFile    = sprintf('Temp/Municipal_Traffic_Exchange_%i.mat',Tyear);
-        RdDistFile = sprintf('Output/RoadTypeDistanceMunicipal%i.mat',Tyear);
-        SSBCPfile  = sprintf('Temp/SSB_CarPark_%i.mat',Tyear);
+        munFile    = sprintf('%sTemp/Municipal_Traffic_Exchange_%i.mat',pathn,Tyear);
+        RdDistFile = sprintf('%sOutput/RoadTypeDistanceMunicipal%i.mat',pathn,Tyear);
+        SSBCPfile  = sprintf('%sTemp/SSB_CarPark_%i.mat',pathn,Tyear);
         load(munFile)    % TrafficIN TrafficFROM kmne
         load(RdDistFile) % KDD
         load(SSBCPfile)  % Vehicle_dist
         
-                
-        RLinks = shaperead(sprintf('Output/Traffic_Emissions_%i',Tyear));
+        fprintf('Reading large RoadLink file...')
+        RLinks = shaperead(sprintf('%sOutput/Traffic_Emissions_%i',pathn,Tyear));
+        fprintf('Done\n')
 
         DaysInYear = datenum([Tyear+1 1 1 0 0 0])-datenum([Tyear 1 1 0 0 0]);
         
@@ -101,7 +110,7 @@ for com = 1:length(comps)
 %             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
 %             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
         end
-        pdata =1e-9*[sum(L_EM),sum(L_EM),sum(L_EM),sum(L_EM+H_EM+B_EM)];
+        pdata =1e-9*[sum(L_EM),sum(H_EM),sum(B_EM),sum(L_EM+H_EM+B_EM)];
         fprintf('\tLIGHT:%6.2f,  HEAV:Y%6.2f,  BUS:%6.2f,  TOT:%6.2f\n',pdata)
 
         % Vehicle_dist
@@ -195,7 +204,7 @@ for com = 1:length(comps)
             end
         end
 
-        fileout = sprintf('Output/NERVE_output_%s_%04i.mat',char(comps(com)),Tyear);
+        fileout = sprintf('%sOutput/NERVE_output_%s_%04i.mat',pathn,char(comps(com)),Tyear);
         fprintf('Processed Emissions for %s year %i\n',char(comps(com)),Tyear)
         save(fileout,'NV','TD','L_IN','H_IN','B_IN','L_FROM','H_FROM','B_FROM','ORdComp','FRdComp','EF_IN','EF_FROM','EM_IN','EM_FROM')
     end
