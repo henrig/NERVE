@@ -16,7 +16,7 @@
 function Emission_Factor_Model_group_HBEFA()
 %--------------------------------------------------------------------------
 % The model classes have a static Emission Factor for each driving
-% condition. This means that 
+% condition. This means that
 % 22.10.2020 -Henrik Grythe
 % Kjeller NILU
 %--------------------------------------------------------------------------
@@ -37,6 +37,7 @@ T  = readtable(input.files.SSB_Vehicle_dist,'Sheet','HBEFA778toMODEL');
 Tm = readtable(input.files.SSB_Vehicle_dist,'Sheet','MODEL');
 fprintf('read Sheet : %s and Sheet %s\n','HBEFA778toMODEL','MODEL')
 fprintf('Using weight %s \n',Vehicle_weight)
+Tout = readtable(input.files.HBEFA_roads,'Sheet','Roads');
 
 
 % ModelNumber HBEFA_Weight    Uniform_Weight
@@ -66,7 +67,7 @@ for com =1:length(comps)
         % Tables are slow to work with and requires a lot of memory, but given
         % the state of HBEFA, they offer good control of emission factors and
         % what/where they are missing.
-        TFout = table;
+        TFout = Tout;
         % Loop all model vehicles
         for mod = 1:length(modelN)
             % Make the subset of emissions/weights needed to calculate a model
@@ -82,113 +83,55 @@ for com =1:length(comps)
                 Nef(i) = length(find(~isnan(EFsub(i,:,:,:,:,:,:))));
             end
             uef = unique(Nef);
-            
-            % If there are only one amount (1440) of Emission factors
-            if length(uef) == 1
-                fprintf('MODEL Vehicle: %3i %-42s Found #%i EF\n',modelN(mod),char(Tm.Name(modelN(mod))),uef)
-                Tout = table;
-                k = 1;
-                for roa = 1:size(EF_AVG,2)
-                    for spd = 1:size(EF_AVG,3)
-                        for dec = 1:size(EF_AVG,4)
-                            for cog = 1:size(EF_AVG,5)
-                                for urb = 1:size(EF_AVG,6)
-                                    Trout = table;
-                                    if ~isnan(EFsub(1,roa,spd,dec,cog,urb))
-                                        Trout.Name        = {sprintf('%s/%s-%i/%i%%/%s',char(roads.RoadEnv(urb)),char(roads.RoadType(roa)),roads.RoadSpeeds(spd),roads.RoadGradient(dec),char(roads.Congestion(cog)))};
-                                        %fprintf('%s/%s-%i/%i%%/%s\n',char(roads.RoadEnv(urb)),char(roads.RoadType(roa)),roads.RoadSpeeds(spd),roads.RoadGradient(dec),char(roads.Congestion(cog)))
-                                        Trout.Nr        = k;
-                                        Trout.RoadNum   = roa;
-                                        Trout.SpeedNum  = spd;
-                                        Trout.DeclNum   = dec;
-                                        Trout.CongNum   = cog;
-                                        Trout.EnviNum   = urb;
-                                        k = k+1;
-                                        Tout = [Tout;Trout];
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-                
-                EFac = nan(height(Tout),1);
-                Wght = nan(height(Tout),1);
-                for veh = 1:height(Tsub)
-                    switch Vehicle_weight
-                        case 'Uniform'
-                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.Uniform_Weight))
-                        case 'NERVE'
-                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.NERVE_Weight))
-                        case 'HBEFA'
-                            fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f ',veh,height(Tsub),Vehicle_weight,Tsub.NERVE_Weight(veh),char(Tsub.Name(veh)),sum(Tsub.HBEFA_Weight))
-                    end
-                    for cond = 1:height(Tout)
-                        if veh == 1
-                            switch Vehicle_weight
-                                case 'Uniform'
-                                    EFac(cond) = EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.Uniform_Weight(veh);
-                                    Wght(cond) = Tsub.Uniform_Weight(veh);
-                                case 'NERVE'
-                                    EFac(cond) = EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.NERVE_Weight(veh);
-                                    Wght(cond) = Tsub.NERVE_Weight(veh);
-                                case 'HBEFA'
-                                    EFac(cond) = EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.HBEFA_Weight(veh);
-                                    Wght(cond) = Tsub.HBEFA_Weight(veh);
-                            end
-                        else
-                            switch Vehicle_weight
-                                case 'Uniform'
-                                    EFac(cond) = EFac(cond) + EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.Uniform_Weight(veh);
-                                    Wght(cond) = Wght(cond)+ Tsub.Uniform_Weight(veh);
-                                case 'NERVE'
-                                    EFac(cond) = EFac(cond) + EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.NERVE_Weight(veh);
-                                    Wght(cond) = Wght(cond)+ Tsub.NERVE_Weight(veh);
-                                case 'HBEFA'
-                                    EFac(cond) = EFac(cond) + EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond))*Tsub.HBEFA_Weight(veh);
-                                    Wght(cond) = Wght(cond)+ Tsub.HBEFA_Weight(veh);
-                            end
-                        end
-                    end
-                    fprintf('\n')
-                end
-                
-                Tout.EFac = EFac./Wght;
-                pos = find(ismember(Tout.Properties.VariableNames,{'EFac'}));
-                
-                Tout.Properties.VariableNames(pos) = Tm.Name(modelN(mod));
-                if debug_mode
-                    fprintf('%s_%s_weight',char(comps(com)),Vehicle_weight)
-                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min)   ',mean(EFac./Wght),max(EFac./Wght),min(EFac./Wght))
-                    fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min) \n',mean(Wght),max(Wght),min(Wght))
-                else
-                    fprintf('\n')
-                end
-            else
-                % if this is the case, there are NaNs in the emission factor
-                % and we will get wrong results.
-                for i=1:length(uef)
-                    fprintf('\n\n\n\n\n\n\n\n\n\n#### Found #%i EF\n',uef(i))
-                end
+            for mr =1:length(uef)
+                fprintf('MODEL Vehicle: %3i %-42s Found #%i EF\n',modelN(mod),char(Tm.Name(modelN(mod))),uef(mr))
             end
             
-            if mod == 1
-                % Add the first part of the table as well
-                TFout = Tout;
-            else
-                % Concatonate only the column of the new vehicle data if the
-                % align.
-                [a,b,c] = intersect(TFout.Name,Tout.Name);
-                addCol  = find(ismember(Tout.Properties.VariableNames,Tm.Name(modelN(mod))));
+            % If there are only one amount (1440 or No) of Emission factors
+            % if length(uef) == 1
+            EFac = zeros(height(Tout),1);
+            Wght = zeros(height(Tout),1);
+            for veh = 1:height(Tsub)
+                switch Vehicle_weight
+                    case 'Uniform'
+                        VW = Tsub.Uniform_Weight(veh);
+                        SW = sum(Tsub.Uniform_Weight);
+                    case 'NERVE'
+                        VW = Tsub.NERVE_Weight(veh);
+                        SW = sum(Tsub.NERVE_Weight);
+                    case 'HBEFA'
+                        VW = Tsub.HBEFA_Weight(veh);
+                        SW = sum(Tsub.HBEFA_Weight);
+                end
+                fprintf('%i of %i %s Weight %3.2f %-30s      of %3.2f \n',veh,height(Tsub),Vehicle_weight,VW,char(Tsub.Name(veh)),SW)
+
+                for cond = 1:height(Tout)
+                    EFcond(cond,1) = EFsub(veh,Tout.RoadNum(cond),Tout.SpeedNum(cond),Tout.DeclNum(cond),Tout.CongNum(cond),Tout.EnviNum(cond));
+                end
                 
-                % Not 100% robust test!!!!?
-                if length(b)==length(c)
-                    TFout = [TFout,Tout(:,addCol)];
-                else
-                    fprintf('\n\n\n\n\n\n\n\n\n\n#### Found #%i & %i EF\n',a,b)
+                if ~isnan(sum(EFcond))
+                    fprintf('Found 1440 emission factors for vehicle\n')
+                    EFac = EFac + EFcond*VW;
+                    Wght = Wght + VW;
+                elseif ~isnan(nansum(EFcond))
+                    fprintf('Found some emission factors for vehicle\n')
+                elseif isnan(nansum(EFcond))
+                    fprintf('Found no emission factors for vehicle\n')
                 end
             end
+            nanmean(EFac)
+            Tout.EFac = EFac;
+            pos = find(ismember(Tout.Properties.VariableNames,{'EFac'}));
+            Tout.Properties.VariableNames(pos) = Tm.Name(modelN(mod));
+            TFout = [TFout,Tout(:,pos)];
             
+            if debug_mode
+                fprintf(' %s_%s_weight',char(comps(com)),Vehicle_weight)
+                fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min)   ',mean(EFac./Wght),max(EFac./Wght),min(EFac./Wght))
+                fprintf(' %7.1f/%7.1f/%7.1f (mean/max/min) \n',mean(Wght),max(Wght),min(Wght))
+            else
+                fprintf('\n')
+            end
         end
         
         EFrdCond = table2array(TFout(:,8:end));

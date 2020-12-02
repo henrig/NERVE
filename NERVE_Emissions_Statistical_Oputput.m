@@ -2,26 +2,26 @@ function NERVE_Emissions_Statistical_Oputput()
 % Data needed by the MijlDirektoratet sheet
 comps  = [{'N2O'}];
 comps  = [{'CO2'},{'FC'},{'CH4'},{'N2O'}];
-comps  = [{'CO2'},{'FC'},{'CH4'}];
-%comps  = [{'CO2'},{'FC'}];
-%comps  = [{'CH4'}];
+% comps  = [{'CO2'},{'FC'},{'CH4'}];
+% comps  = [{'CO2'},{'FC'}];
+% comps  = [{'CH4'}];
 
-%x NV(kom,veh) %#
-%x TD(kom,veh) %km
-%x ORdComp(kom,veh) % frac
-%x FRdComp(kom,veh) % frac
-%x L_IN(kom)        % km/yr
-%x H_IN(kom)        % km/yr
-%x B_IN(kom)        % km/yr
+% x NV(kom,veh)      % #
+% x TD(kom,veh)      % km
+% x ORdComp(kom,veh) % frac
+% x FRdComp(kom,veh) % frac
+% x L_IN(kom)        % km/yr
+% x H_IN(kom)        % km/yr
+% x B_IN(kom)        % km/yr
 
 %Check the below values against Roads: 
-%s L_FROM(kom)       % km/yr
-%s H_FROM(kom)       % km/yr
-%s B_FROM(kom)       % km/yr
-%s EF_IN(kom,veh)    % g/km
-%s EM_IN(kom,veh)    % g/yr
-%s EF_FROM(kom,veh)  % g/km
-%s EM_FROM(kom,veh)  % g/yr
+% s L_FROM(kom)       % km/yr
+% s H_FROM(kom)       % km/yr
+% s B_FROM(kom)       % km/yr
+% s EF_IN(kom,veh)    % g/km
+% s EM_IN(kom,veh)    % g/yr
+% s EF_FROM(kom,veh)  % g/km
+% s EM_FROM(kom,veh)  % g/yr
 
 if ispc
     bp = 'N:\Inby';
@@ -47,7 +47,8 @@ for com = 1:length(comps)
         % files that must be read for each year and component!
         EF_File = sprintf('%sTemp/EF_On_AllRoadCond_Municipality_%i_%s.mat',pathn,Tyear,char(comps(com)));
         load(EF_File)
-
+        fileout = sprintf('%sOutput2/NERVE_output_%s_%04i.mat',pathn,char(comps(com)),Tyear);
+        
         try
             R_EF_File = sprintf('%sTemp/EFA_Table_MODEL_%s_Bio%i.mat',pathn,char(comps(com)),Tyear);
             load(R_EF_File,'TFout'); % TFout
@@ -60,14 +61,14 @@ for com = 1:length(comps)
 
         % files that must be read per year
         munFile    = sprintf('%sTemp/Municipal_Traffic_Exchange_%i.mat',pathn,Tyear);
-        RdDistFile = sprintf('%sOutput/RoadTypeDistanceMunicipal%i.mat',pathn,Tyear);
+        RdDistFile = sprintf('%sOutput2/RoadTypeDistanceMunicipal%i.mat',pathn,Tyear);
         SSBCPfile  = sprintf('%sTemp/SSB_CarPark_%i.mat',pathn,Tyear);
         load(munFile)    % TrafficIN TrafficFROM kmne
         load(RdDistFile) % KDD
         load(SSBCPfile)  % Vehicle_dist
         
         fprintf('Reading large RoadLink file...')
-        RLinks = shaperead(sprintf('%sOutput/Traffic_Emissions_%i',pathn,Tyear));
+        RLinks = shaperead(sprintf('%sOutput2/Traffic_Emissions_%i',pathn,Tyear));
         fprintf('Done\n')
 
         DaysInYear = datenum([Tyear+1 1 1 0 0 0])-datenum([Tyear 1 1 0 0 0]);
@@ -111,7 +112,7 @@ for com = 1:length(comps)
 %             EM_INr(k) = sum(EM(f).*IDO(f))+sum(EM(f2).*(1-IDO(f2)));
         end
         pdata =1e-9*[sum(L_EM),sum(H_EM),sum(B_EM),sum(L_EM+H_EM+B_EM)];
-        fprintf('\tLIGHT:%6.2f,  HEAV:Y%6.2f,  BUS:%6.2f,  TOT:%6.2f\n',pdata)
+        fprintf('\tLIGHT:%6.2f,  HEAVY:%6.2f,  BUS:%6.2f,  TOT: %8.3f\n',pdata)
 
         % Vehicle_dist
         %------------------------------------------------------------------
@@ -168,11 +169,11 @@ for com = 1:length(comps)
         end
 
         pdata =[1e-9*nansum(nansum(EM_IN)),100*nansum(nansum(EM_IN))/sum(L_EM+H_EM+B_EM)];
-        fprintf('\t\t\t\t\tTOT_IN %8.1f diff %4.2f%%\n',pdata)
+        fprintf('\t\t\t\t\t\tTOT_IN  : %8.3f diff %4.2f%%\n',pdata)
  
-% END IN
-%--------------------------------------------------------------------------
-% This method assigns the total Emissions based on the exchange.
+        % END IN
+        %------------------------------------------------------------------
+        % This method assigns the total Emissions based on the exchange.
 
         for komm = 1:size(TrafficFROM,2)
             I            = find(TrafficFROM(komm,:)>0);
@@ -189,8 +190,8 @@ for com = 1:length(comps)
              end
         end
  
-        %--------------------------------------------------------------------------
-        % create *L_FROM(kom)* based on:::: L_IN and exchange
+        %------------------------------------------------------------------
+        % create *L_FROM(kom)* based on :::: L_IN and exchange
         for k=1:length(ukomm)
             for veh = 1:length(vehicles)
                 type = TM.Model_Class(veh);
@@ -203,12 +204,13 @@ for com = 1:length(comps)
                 end
             end
         end
-
-        fileout = sprintf('%sOutput/NERVE_output_%s_%04i.mat',pathn,char(comps(com)),Tyear);
+        pdata =[1e-9*nansum(nansum(EM_FROM)),100*nansum(nansum(EM_FROM))/sum(L_EM+H_EM+B_EM)];
+        fprintf('\t\t\t\t\t\tTOT_FROM: %8.3f diff %4.2f%%\n',pdata)
+ 
         fprintf('Processed Emissions for %s year %i\n',char(comps(com)),Tyear)
         save(fileout,'NV','TD','L_IN','H_IN','B_IN','L_FROM','H_FROM','B_FROM','ORdComp','FRdComp','EF_IN','EF_FROM','EM_IN','EM_FROM')
     end
 end
-
-
+addpath('/storage/nilu/Inby/Emission_Group/Emission_Models/HEDGE/MiljodirektoratetData')
+NERVE_Miljodirektoratet_Output_generator()
 end

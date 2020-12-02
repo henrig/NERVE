@@ -39,32 +39,34 @@ Ks      = shaperead(Komm_shape);
 
 % Adds a Roads Midpoint based on the starting point and ending point of
 % Road
-if ~isfield(RLinks,'MIDPOINT_X') || ~isfield(RLinks,'MIDPOINT_Y')
-    for i = 1:length(RLinks)
-        x            = RLinks(i).X;
-        y            = RLinks(i).Y;
-        MIDPOINT_X(i)=(x(1)+x(end-1))/2;
-        MIDPOINT_Y(i)=(y(1)+y(end-1))/2;
-    end
-else
-    MIDPOINT_X = extractfield(RLinks,'MIDPOINT_X');
-    MIDPOINT_Y = extractfield(RLinks,'MIDPOINT_Y');
-end
+% if ~isfield(RLinks,'MIDPOINT_X') || ~isfield(RLinks,'MIDPOINT_Y')
+%     for i = 1:length(RLinks)
+%         x            = RLinks(i).X;
+%         y            = RLinks(i).Y;
+%         MIDPOINT_X(i)=(x(1)+x(end-1))/2;
+%         MIDPOINT_Y(i)=(y(1)+y(end-1))/2;
+%     end
+% else
+%     MIDPOINT_X = extractfield(RLinks,'MIDPOINT_X');
+%     MIDPOINT_Y = extractfield(RLinks,'MIDPOINT_Y');
+% end
 
 for i = 1:length(RLinks)
     x            = RLinks(i).X;
     y            = RLinks(i).Y;
-    ix           = ~isnan(x);
-    iy           = ~isnan(x);
+    ix           = find(~isnan(x));
+    iy           = find(~isnan(y));
     START_X(i)   = x(ix(1));
     START_Y(i)   = y(iy(1));
-    END_X(i)     = x(ix(1));
-    END_Y(i)     = y(iy(1));
+    END_X(i)     = x(ix(end));
+    END_Y(i)     = y(iy(end));
+    MIDPOINT_X(i) = mean(x(ix));
+    MIDPOINT_Y(i) = mean(y(iy));        
 end
 
 KOMMS = nan(size(START_X));
 KOMME = nan(size(START_X));
-KOMM = nan(size(START_X));
+KOMM  = nan(size(START_X));
 for i = 1:length(Ks)
     % FIND STARTING MUNICIPALITY
     inS = inpolygon(START_X,START_Y,Ks(i).X,Ks(i).Y);
