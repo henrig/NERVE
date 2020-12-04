@@ -25,6 +25,7 @@ startkommune = extractfield(RLinks,'KOMMS');
 endekommune  = extractfield(RLinks,'KOMME');
 midtkommune  = extractfield(RLinks,'KOMM');
 
+
 komVeg       = nan(size(startkommune));
 komVeg(startkommune == endekommune&(startkommune == midtkommune))=1;
 komVeg(startkommune ~= endekommune) = 0;
@@ -36,18 +37,84 @@ fprintf('Roads shared between municipalities %7i \n',length(find(komVeg==0)))
 fprintf('Roads   without      municipality   %7i \n',length(find(isnan(komVeg))))
 fprintf('----------------------------------------\n')
 
+
 Keep_RLinks = RLinks(find(komVeg));
 t_RLinks    = RLinks(komVeg==0);
+
 Komms       = extractfield(Ks,'KOMMUNENUM');
 
 
-Fraction = zeros(size(t_RLinks));
-fail = 1;
+
+% First deal with roads that are continouus.  
 for i=1:length(t_RLinks)
     startkommune = extractfield(t_RLinks(i),'KOMMS');
     endekommune  = extractfield(t_RLinks(i),'KOMME');
     midtkommune  = extractfield(t_RLinks(i),'KOMM');
-    fprintf('%-4i',i)
+    xs  = extractfield(t_RLinks(i),'X');
+    individual(i)  = length(find(isnan(xs)));
+    subsegments(i) = length(find(~isnan(xs)))-1;     
+end
+
+idx = individual==1 & subsegments==1;
+Straight_single_roads = find(idx);
+Curvy_single_roads    = find(individual==1 & ~idx);
+Complex_roads         = find(individual>1 & subsegments~=1);
+
+fprintf('----------------------------------------\n')
+fprintf('Straight_single_roads municipalities %7i \n',length(Straight_single_roads))
+fprintf('Curvy_single_roads    municipalities %7i \n',length(Curvy_single_roads))
+fprintf('Complex_roads         municipality   %7i \n',length(Complex_roads))
+fprintf('Unexplained roads     municipality   %7i \n',length(find(komVeg==0))-length(Complex_roads)-length(Curvy_single_roads)-length(Straight_single_roads) )
+fprintf('----------------------------------------\n')
+
+RDcomplexity(Straight_single_roads) = 1;
+RDcomplexity(Curvy_single_roads)    = 2;
+RDcomplexity(Complex_roads)         = 3;
+
+
+
+
+% keep a backup ht = t_RLinks;
+
+% trim some of the subnodes off the roads a bit so they are not too long,
+% as the test can run out of memory.
+for i = 1:length(t_RLinks)    
+    if(RDcomplexity(i)==2 && subsegments(i)>500)
+        xs  = extractfield(t_RLinks(i),'X');
+        ys  = extractfield(t_RLinks(i),'Y');
+        lxy = length(xs);
+        startx = xs(1);
+        starty = ys(1);
+        stopx  = xs(end-1);
+        stopy  = ys(end-1);
+        while lxy > 450
+            segD(1) = sqrt((xs(1)-xs(2))^2 +(ys(1)-ys(2))^2);
+            for r = 2:length(xs)
+                segD(r) = sqrt((xs(r-1)-xs(r))^2 +(ys(r-1)-ys(r))^2);
+            end
+            idx = find(segD <= min(segD)+1e-0);
+            segD(idx) = NaN;
+            idx2 = ~isnan(segD);
+            xs = xs(idx2);
+            ys = ys(idx2);
+            lxy = length(xs);
+            clear segD
+        end
+        newx = [startx,xs,stopx,NaN];
+        newy = [starty,ys,stopy,NaN];
+        t_RLinks(i).X = newx;
+        t_RLinks(i).Y = newy;
+    end
+end
+
+fail = 1;
+Fraction    = zeros(size(t_RLinks));
+for i=1:length(t_RLinks)
+    startkommune = extractfield(t_RLinks(i),'KOMMS');
+    endekommune  = extractfield(t_RLinks(i),'KOMME');
+    midtkommune  = extractfield(t_RLinks(i),'KOMM');
+    fprintf('%-5i',i)
+    
     if ~isnan(startkommune)
         pla = find(Komms == startkommune);
         for p=1:length(pla)
@@ -71,6 +138,7 @@ for i=1:length(t_RLinks)
             fail = fail+1;
         end
     end
+    if rem(i,50)==0; fprintf('\n'); end
 end
 KeepT = struct2table(Keep_RLinks);    
 t_T   = struct2table(t_RLinks);    

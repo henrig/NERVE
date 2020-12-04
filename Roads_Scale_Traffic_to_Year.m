@@ -63,6 +63,8 @@ fprintf('Light=%4.1f%%\n',100*(mean(Scale.ToYearL)-1))
 fprintf('Heavy=%4.1f%%\n',100*(mean(Scale.ToYearH)-1))
 fprintf('Buses=%4.1f%%\n',100*(mean(Scale.ToYearB)-1))
 
+
+
 % Tabelize Roads
 Tlink   = struct2table(RLinks);
 
