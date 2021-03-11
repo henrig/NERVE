@@ -30,7 +30,7 @@ else
 end
 pathn = sprintf('%s/Emission_Group/Emission_Models/HEDGE/',bp);
 tfold = sprintf('%sTemp/'  ,pathn);
-ofold = sprintf('%sOutput2/',pathn);
+ofold = sprintf('%sOutputNewCong/',pathn);
 ifold = sprintf('%sInput/'  ,pathn);
 pfold = sprintf('%sPlots/'  ,pathn);
 
@@ -283,7 +283,7 @@ for com = 1:length(comps)
             grid on
             xlabel('Distanse kjørt med biler med opphave i kommune x')
             ylabel('Utslippsfaktor (g/km)')
-            tn = sprintf('Trafikkarbeid og Utslippsfaktor Alle Biler og kommuner %i %s',Tyear,,char(comps(com)));
+            tn = sprintf('Trafikkarbeid og Utslippsfaktor Alle Biler og kommuner %i %s',Tyear,char(comps(com)));
             hold on
             scatter((L_IN+H_IN+B_IN)',nansum(EM_IN,2)./(L_IN+H_IN+B_IN)',5,'w','filled')
             title(tn)
